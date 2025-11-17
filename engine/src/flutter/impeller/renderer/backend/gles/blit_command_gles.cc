@@ -4,6 +4,7 @@
 
 #include "impeller/renderer/backend/gles/blit_command_gles.h"
 
+#include "GLES2/gl2ext.h"
 #include "flutter/fml/closure.h"
 #include "impeller/base/validation.h"
 #include "impeller/core/formats.h"
@@ -194,6 +195,9 @@ struct TexImage2DData {
         external_format = GL_DEPTH_STENCIL;
         type = GL_UNSIGNED_INT_24_8;
         break;
+      case PixelFormat::kCompressed:
+        internal_format = GL_COMPRESSED_RGBA_BPTC_UNORM_EXT;
+        break;
       case PixelFormat::kUnknown:
       case PixelFormat::kD32FloatS8UInt:
       case PixelFormat::kR8G8UNormInt:
@@ -228,7 +232,8 @@ bool BlitCopyBufferToTextureCommandGLES::Encode(
     const ReactorGLES& reactor) const {
   TextureGLES& texture_gles = TextureGLES::Cast(*destination);
 
-  if (texture_gles.GetType() != TextureGLES::Type::kTexture) {
+  if (texture_gles.GetType() != TextureGLES::Type::kTexture &&
+      texture_gles.GetType() != TextureGLES::Type::kTextureCompressed) {
     VALIDATION_LOG << "Incorrect texture usage flags for setting contents on "
                       "this texture object.";
     return false;
@@ -258,6 +263,7 @@ bool BlitCopyBufferToTextureCommandGLES::Encode(
   GLenum texture_target;
   switch (tex_descriptor.type) {
     case TextureType::kTexture2D:
+    case TextureType::kTexture2DCompressed:
       texture_type = GL_TEXTURE_2D;
       texture_target = GL_TEXTURE_2D;
       break;
@@ -295,32 +301,57 @@ bool BlitCopyBufferToTextureCommandGLES::Encode(
   // GL_INVALID_OPERATION if the texture array has not been
   // defined by a previous glTexImage2D operation.
   if (!texture_gles.IsSliceInitialized(slice)) {
-    gl.TexImage2D(texture_target,              // target
-                  mip_level,                   // LOD level
-                  data.internal_format,        // internal format
-                  tex_descriptor.size.width,   // width
-                  tex_descriptor.size.height,  // height
-                  0u,                          // border
-                  data.external_format,        // external format
-                  data.type,                   // type
-                  nullptr                      // data
-    );
+    if (tex_descriptor.type == TextureType::kTexture2D) {
+      gl.TexImage2D(texture_target,              // target
+                    mip_level,                   // LOD level
+                    data.internal_format,        // internal format
+                    tex_descriptor.size.width,   // width
+                    tex_descriptor.size.height,  // height
+                    0u,                          // border
+                    data.external_format,        // external format
+                    data.type,                   // type
+                    nullptr                      // data
+      );
+    } else if (tex_descriptor.type == TextureType::kTexture2DCompressed) {
+      gl.CompressedTexImage2D(texture_target,              // target
+                              mip_level,                   // LOD level
+                              data.internal_format,        // internal format
+                              tex_descriptor.size.width,   // width
+                              tex_descriptor.size.height,  // height
+                              0u,                          // border
+                              1024 * 1024,  // image size (in bytes)
+                              nullptr       // data
+      );
+    }
     texture_gles.MarkSliceInitialized(slice);
   }
 
   {
     gl.PixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    gl.TexSubImage2D(texture_target,                  // target
-                     mip_level,                       // LOD level
-                     destination_region.GetX(),       // xoffset
-                     destination_region.GetY(),       // yoffset
-                     destination_region.GetWidth(),   // width
-                     destination_region.GetHeight(),  // height
-                     data.external_format,            // external format
-                     data.type,                       // type
-                     tex_data                         // data
+    if (tex_descriptor.type == TextureType::kTexture2D) {
+      gl.TexSubImage2D(texture_target,                  // target
+                       mip_level,                       // LOD level
+                       destination_region.GetX(),       // xoffset
+                       destination_region.GetY(),       // yoffset
+                       destination_region.GetWidth(),   // width
+                       destination_region.GetHeight(),  // height
+                       data.external_format,            // external format
+                       data.type,                       // type
+                       tex_data                         // data
 
-    );
+      );
+    } else if (tex_descriptor.type == TextureType::kTexture2DCompressed) {
+      gl.CompressedTexSubImage2D(texture_target,                  // target
+                                 mip_level,                       // LOD level
+                                 destination_region.GetX(),       // xoffset
+                                 destination_region.GetY(),       // yoffset
+                                 destination_region.GetWidth(),   // width
+                                 destination_region.GetHeight(),  // height
+                                 data.internal_format,            // format
+                                 1024 * 1024,                     // size
+                                 tex_data                         // data
+      );
+    }
   }
   return true;
 }

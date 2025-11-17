@@ -1,0 +1,144 @@
+source_root = "//flutter/third_party/KTX-Software"
+
+config("libktx_defines") {
+  defines = [
+    "BASISD_SUPPORT_KTX2_ZSTD=0",
+    "BASISD_SUPPORT_KTX2=0"
+  ]
+}
+
+config("libktx_config") {
+  include_dirs = [
+    "$source_root/include",
+  ]
+}
+
+source_set("astc_encoder") {
+    astc_source_root = "$source_root/external/astc-encoder/Source"
+    include_dirs = [
+        "$astc_source_root"
+    ]
+sources = [
+     "$astc_source_root/astcenc_averages_and_directions.cpp",
+        "$astc_source_root/astcenc_block_sizes.cpp",
+        "$astc_source_root/astcenc_color_quantize.cpp",
+        "$astc_source_root/astcenc_color_unquantize.cpp",
+        "$astc_source_root/astcenc_compress_symbolic.cpp",
+        "$astc_source_root/astcenc_compute_variance.cpp",
+        "$astc_source_root/astcenc_decompress_symbolic.cpp",
+        "$astc_source_root/astcenc_diagnostic_trace.cpp",
+        "$astc_source_root/astcenc_entry.cpp",
+        "$astc_source_root/astcenc_find_best_partitioning.cpp",
+        "$astc_source_root/astcenc_ideal_endpoints_and_weights.cpp",
+        "$astc_source_root/astcenc_image.cpp",
+        "$astc_source_root/astcenc_integer_sequence.cpp",
+        "$astc_source_root/astcenc_mathlib.cpp",
+        "$astc_source_root/astcenc_mathlib_softfloat.cpp",
+        "$astc_source_root/astcenc_partition_tables.cpp",
+        "$astc_source_root/astcenc_percentile_tables.cpp",
+        "$astc_source_root/astcenc_pick_best_endpoint_format.cpp",
+        "$astc_source_root/astcenc_quantization.cpp",
+        "$astc_source_root/astcenc_symbolic_physical.cpp",
+        "$astc_source_root/astcenc_weight_align.cpp",
+        "$astc_source_root/astcenc_weight_quant_xfer_tables.cpp",
+]
+}
+
+source_set("ktx_vulkan_upload") {
+  include_dirs = [
+    "$source_root/include",
+    "$source_root/external/dfdutils",
+    "$source_root/utils",
+  ]
+    sources = [
+        "$source_root/lib/vk_funcs.c",
+        "$source_root/lib/vkloader.c",
+    ]
+}
+
+source_set("ktx_opengl_upload") {
+  include_dirs = [
+    "$source_root/include",
+    "$source_root/utils",
+    "$source_root/other_include",
+  ]
+    sources = [
+        "$source_root/lib/gl_funcs.c",
+        "$source_root/lib/glloader.c",
+    ]
+}
+
+source_set("ktx_etc_unpack") {
+  include_dirs = [
+    "$source_root/external/etcdec",
+  ]
+    sources = [
+        "$source_root/external/etcdec/etcdec.cxx",
+    ]
+}
+
+source_set("ktx_feature_ktx1") {
+  include_dirs = [
+    "$source_root/include",
+    "$source_root/lib",
+    "$source_root/external",
+    "$source_root/utils",
+  ]
+    sources = [
+        "$source_root/lib/texture1.c"
+    ]
+}
+
+source_set("ktx_main") {
+  configs += [ ":libktx_defines" ]
+  include_dirs = [
+    "$source_root/include",
+    "$source_root/lib",
+    "$source_root/external",
+    "$source_root/external/basisu/transcoder",
+    "$source_root/external/basisu/zstd",
+    "$source_root/external/dfdutils",
+    "$source_root/external/utils",
+    "$source_root/utils",
+    "$source_root/other_include",
+  ]
+  sources = [
+    "$source_root/lib/astc_codec.cpp",
+    "$source_root/lib/basis_transcode.cpp",
+    "$source_root/lib/miniz_wrapper.cpp",
+    "$source_root/external/basisu/transcoder/basisu_transcoder.cpp",
+    "$source_root/external/basisu/zstd/zstd.c",
+    "$source_root/lib/checkheader.c",
+    "$source_root/external/dfdutils/createdfd.c",
+    "$source_root/external/dfdutils/colourspaces.c",
+    "$source_root/external/dfdutils/interpretdfd.c",
+    "$source_root/external/dfdutils/printdfd.c",
+    "$source_root/external/dfdutils/queries.c",
+    "$source_root/external/dfdutils/vk2dfd.c",
+    "$source_root/lib/etcunpack.cxx",
+    "$source_root/lib/filestream.c",
+    "$source_root/lib/hashlist.c",
+    "$source_root/lib/info.c",
+    "$source_root/lib/memstream.c",
+    "$source_root/lib/strings.c",
+    "$source_root/lib/swap.c",
+    "$source_root/lib/texture.c",
+    "$source_root/lib/texture2.c",
+    "$source_root/lib/vkformat_check.c",
+    "$source_root/lib/vkformat_check_variant.c",
+    "$source_root/lib/vkformat_str.c",
+    "$source_root/lib/vkformat_typesize.c",
+  ]
+}
+
+static_library("libktx_read") {
+  public_configs = [ ":libktx_config" ]
+  deps = [
+    ":ktx_main",
+    ":ktx_etc_unpack",
+    ":ktx_feature_ktx1",
+    ":ktx_opengl_upload",
+    ":ktx_vulkan_upload",
+    ":astc_encoder",
+     ]
+}

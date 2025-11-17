@@ -5,5 +5,9 @@
     "githubPullRequests.ignoredPullRequestBranches": [
         "master"
     ],
-    "files.trimTrailingWhitespace": true
+    "files.trimTrailingWhitespace": true,
+    "clangd.arguments": [
+        "--compile-commands-dir=engine/src/out/host_debug_unopt"
+    ],
+    "dart.showTodos": false
 }

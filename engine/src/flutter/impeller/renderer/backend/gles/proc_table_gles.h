@@ -242,6 +242,8 @@ void(glDepthRange)(GLdouble n, GLdouble f);
   PROC(DepthRange);
 
 #define FOR_EACH_IMPELLER_GLES3_PROC(PROC) \
+  PROC(CompressedTexImage2D);              \
+  PROC(CompressedTexSubImage2D);           \
   PROC(FenceSync);                         \
   PROC(DeleteSync);                        \
   PROC(GetActiveUniformBlockiv);           \

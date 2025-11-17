@@ -171,6 +171,7 @@ constexpr std::optional<GLenum> ToVertexAttribType(ShaderType type) {
 constexpr GLenum ToTextureType(TextureType type) {
   switch (type) {
     case TextureType::kTexture2D:
+    case TextureType::kTexture2DCompressed:
       return GL_TEXTURE_2D;
     case TextureType::kTexture2DMultisample:
       return GL_TEXTURE_2D_MULTISAMPLE;
@@ -185,6 +186,7 @@ constexpr GLenum ToTextureType(TextureType type) {
 constexpr std::optional<GLenum> ToTextureTarget(TextureType type) {
   switch (type) {
     case TextureType::kTexture2D:
+    case TextureType::kTexture2DCompressed:
       return GL_TEXTURE_2D;
     case TextureType::kTexture2DMultisample:
       return GL_TEXTURE_2D;

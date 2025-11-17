@@ -589,6 +589,14 @@ optional("typeface_freetype") {
   sources = skia_ports_freetype_sources
 }
 
+optional("ktx_decode") {
+  enabled = skia_use_libktx_decode
+  public_defines = [ "SK_CODEC_DECODES_KTX" ]
+
+  deps = [ "//flutter/third_party/KTX-Software:libktx_read" ]
+  sources = [ "$_skia_root/src/codec/SkKtxCodec.cpp" ]
+}
+
 optional("webp_decode") {
   enabled = skia_use_libwebp_decode
   public_defines = [ "SK_CODEC_DECODES_WEBP" ]
@@ -657,6 +665,7 @@ skia_component("skia") {
   deps = [
     ":hsw",
     ":jpeg_decode",
+    ":ktx_decode",
     ":ndk_images",
     ":png_decode_libpng",
     ":webp_decode",

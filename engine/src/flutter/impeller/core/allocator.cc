@@ -48,6 +48,8 @@ std::shared_ptr<DeviceBuffer> Allocator::CreateBuffer(
 
 std::shared_ptr<Texture> Allocator::CreateTexture(const TextureDescriptor& desc,
                                                   bool threadsafe) {
+  // TODO(andrew) we could check for HW compression support here?
+
   const auto max_size = GetMaxTextureSizeSupported();
   if (desc.size.width > max_size.width || desc.size.height > max_size.height) {
     VALIDATION_LOG << "Requested texture size " << desc.size

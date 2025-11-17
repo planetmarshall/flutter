@@ -8,6 +8,7 @@
 #include <optional>
 #include <utility>
 
+#include "GLES2/gl2ext.h"
 #include "flutter/fml/logging.h"
 #include "flutter/fml/mapping.h"
 #include "flutter/fml/trace_event.h"
@@ -21,6 +22,15 @@
 namespace impeller {
 
 namespace {
+static bool IsCompressedFormat(PixelFormat format) {
+  switch (format) {
+    case PixelFormat::kCompressed:
+      return true;
+    default:
+      return false;
+  }
+}
+
 static bool IsDepthStencilFormat(PixelFormat format) {
   switch (format) {
     case PixelFormat::kS8UInt:
@@ -28,6 +38,7 @@ static bool IsDepthStencilFormat(PixelFormat format) {
     case PixelFormat::kD32FloatS8UInt:
       return true;
     case PixelFormat::kUnknown:
+    case PixelFormat::kCompressed:
     case PixelFormat::kA8UNormInt:
     case PixelFormat::kR8UNormInt:
     case PixelFormat::kR8G8UNormInt:
@@ -51,6 +62,9 @@ static TextureGLES::Type GetTextureTypeFromDescriptor(
   const auto usage = static_cast<TextureUsageMask>(desc.usage);
   const auto render_target = TextureUsage::kRenderTarget;
   const auto is_msaa = desc.sample_count == SampleCount::kCount4;
+  if (IsCompressedFormat(desc.format)) {
+    return TextureGLES::Type::kTextureCompressed;
+  }
   if (usage == render_target && IsDepthStencilFormat(desc.format)) {
     return is_msaa ? TextureGLES::Type::kRenderBufferMultisampled
                    : TextureGLES::Type::kRenderBuffer;
@@ -108,6 +122,9 @@ struct TexImage2DData {
         external_format = GL_DEPTH_STENCIL;
         type = GL_UNSIGNED_INT_24_8;
         break;
+      case PixelFormat::kCompressed:
+        internal_format = GL_COMPRESSED_RGBA_BPTC_UNORM_EXT;
+        break;
       case PixelFormat::kUnknown:
       case PixelFormat::kD32FloatS8UInt:
       case PixelFormat::kR8G8UNormInt:
@@ -135,6 +152,7 @@ struct TexImage2DData {
 HandleType ToHandleType(TextureGLES::Type type) {
   switch (type) {
     case TextureGLES::Type::kTexture:
+    case TextureGLES::Type::kTextureCompressed:
     case TextureGLES::Type::kTextureMultisampled:
       return HandleType::kTexture;
     case TextureGLES::Type::kRenderBuffer:
@@ -308,6 +326,7 @@ bool TextureGLES::OnSetContents(std::shared_ptr<const fml::Mapping> mapping,
   GLenum texture_target;
   switch (tex_descriptor.type) {
     case TextureType::kTexture2D:
+    case TextureType::kTexture2DCompressed:
       texture_type = GL_TEXTURE_2D;
       texture_target = GL_TEXTURE_2D;
       break;
@@ -393,6 +412,7 @@ static std::optional<GLenum> ToRenderBufferFormat(PixelFormat format) {
     case PixelFormat::kD32FloatS8UInt:
       return GL_DEPTH32F_STENCIL8;
     case PixelFormat::kUnknown:
+    case PixelFormat::kCompressed:
     case PixelFormat::kA8UNormInt:
     case PixelFormat::kR8UNormInt:
     case PixelFormat::kR8G8UNormInt:
@@ -461,6 +481,14 @@ void TextureGLES::InitializeContentsIfNecessary() const {
         );
       }
     } break;
+    case Type::kTextureCompressed: {
+      TRACE_EVENT0("impeller", "CompressedTexImage2DInitialization");
+      TexImage2DData tex_data(GetTextureDescriptor().format);
+      gl.CompressedTexImage2D(GL_TEXTURE_2D, 0u, tex_data.internal_format,
+                              size.width, size.height, 0u,
+                              1024 * 1024,  // image size
+                              nullptr);
+    }
     case Type::kRenderBuffer:
     case Type::kRenderBufferMultisampled: {
       auto render_buffer_format =
@@ -530,6 +558,7 @@ bool TextureGLES::Bind() const {
 
   switch (type_) {
     case Type::kTexture:
+    case Type::kTextureCompressed:
     case Type::kTextureMultisampled: {
       const auto target = ToTextureTarget(GetTextureDescriptor().type);
       if (!target.has_value()) {
@@ -570,6 +599,10 @@ bool TextureGLES::GenerateMipmap() {
   switch (type) {
     case TextureType::kTexture2D:
       break;
+    case TextureType::kTexture2DCompressed:
+      VALIDATION_LOG
+          << "Generating mipmaps for compressed textures is not supported";
+      return false;
     case TextureType::kTexture2DMultisample:
       VALIDATION_LOG << "Generating mipmaps for multisample textures is not "
                         "supported in the GLES backend.";
@@ -624,6 +657,7 @@ bool TextureGLES::SetAsFramebufferAttachment(
   const auto& gl = reactor_->GetProcTable();
 
   switch (ComputeTypeForBinding(target)) {
+    case Type::kTextureCompressed:
     case Type::kTexture:
       gl.FramebufferTexture2D(target,                             // target
                               ToAttachmentType(attachment_type),  // attachment

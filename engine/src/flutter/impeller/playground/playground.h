@@ -87,6 +87,9 @@ class Playground {
   static std::shared_ptr<CompressedImage> LoadFixtureImageCompressed(
       std::shared_ptr<fml::Mapping> mapping);
 
+  static std::optional<DecompressedImage> TranscodeCompressedTextureImage(
+      const std::shared_ptr<CompressedImage>& compressed);
+
   static std::optional<DecompressedImage> DecodeImageRGBA(
       const std::shared_ptr<CompressedImage>& compressed);
 
@@ -95,7 +98,16 @@ class Playground {
       std::shared_ptr<fml::Mapping> mapping,
       bool enable_mipmapping = false);
 
+  static std::shared_ptr<Texture> CreateCompressedTextureForMapping(
+      const std::shared_ptr<Context>& context,
+      std::shared_ptr<fml::Mapping> mapping,
+      bool enable_mipmapping = false);
+
   std::shared_ptr<Texture> CreateTextureForFixture(
+      const char* fixture_name,
+      bool enable_mipmapping = false) const;
+
+  std::shared_ptr<Texture> CreateCompressedTextureForFixture(
       const char* fixture_name,
       bool enable_mipmapping = false) const;
 

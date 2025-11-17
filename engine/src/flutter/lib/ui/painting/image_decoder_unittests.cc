@@ -24,6 +24,7 @@
 #include "flutter/testing/test_gl_surface.h"
 #include "flutter/testing/testing.h"
 #include "fml/logging.h"
+#include "gtest/gtest.h"
 #include "impeller/core/runtime_types.h"
 #include "impeller/renderer/command_queue.h"
 #include "third_party/skia/include/codec/SkCodecAnimation.h"
@@ -807,6 +808,14 @@ TEST(ImageDecoderTest,
   // Both fixtures have a loop count of 2.
   ASSERT_EQ(gif_generator->GetPlayCount(), static_cast<unsigned int>(2));
   ASSERT_EQ(webp_generator->GetPlayCount(), static_cast<unsigned int>(2));
+}
+
+TEST(ImageDecoderTest, DecodeKtx2Image) {
+  auto data = flutter::testing::OpenFixtureAsSkData("color_grid_uastc.ktx2");
+  auto image = SkImages::DeferredFromEncodedData(data);
+  ASSERT_TRUE(image != nullptr);
+  EXPECT_EQ(1024, image->width());
+  EXPECT_EQ(1024, image->height());
 }
 
 TEST(ImageDecoderTest, VerifySimpleDecoding) {

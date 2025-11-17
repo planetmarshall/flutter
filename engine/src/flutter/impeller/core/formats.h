@@ -114,6 +114,8 @@ enum class PixelFormat : uint8_t {
   kS8UInt,
   kD24UnormS8Uint,
   kD32FloatS8UInt,
+  // Compressed
+  kCompressed
 };
 
 constexpr bool IsDepthWritable(PixelFormat format) {
@@ -171,6 +173,8 @@ constexpr const char* PixelFormatToString(PixelFormat format) {
       return "D24UnormS8Uint";
     case PixelFormat::kD32FloatS8UInt:
       return "D32FloatS8UInt";
+    case PixelFormat::kCompressed:
+      return "Compressed";
   }
   FML_UNREACHABLE();
 }
@@ -261,6 +265,7 @@ constexpr bool CanDiscardAttachmentWhenDone(StoreAction action) {
 
 enum class TextureType {
   kTexture2D,
+  kTexture2DCompressed,
   kTexture2DMultisample,
   kTextureCube,
   kTextureExternalOES,
@@ -270,6 +275,8 @@ constexpr const char* TextureTypeToString(TextureType type) {
   switch (type) {
     case TextureType::kTexture2D:
       return "Texture2D";
+    case TextureType::kTexture2DCompressed:
+      return "Texture2DCompressed";
     case TextureType::kTexture2DMultisample:
       return "Texture2DMultisample";
     case TextureType::kTextureCube:
@@ -283,6 +290,7 @@ constexpr const char* TextureTypeToString(TextureType type) {
 constexpr bool IsMultisampleCapable(TextureType type) {
   switch (type) {
     case TextureType::kTexture2D:
+    case TextureType::kTexture2DCompressed:
     case TextureType::kTextureCube:
     case TextureType::kTextureExternalOES:
       return false;
@@ -467,6 +475,8 @@ constexpr size_t BytesPerPixelForPixelFormat(PixelFormat format) {
   switch (format) {
     case PixelFormat::kUnknown:
       return 0u;
+    case PixelFormat::kCompressed:  // Assume 4x4 block compression at 128bits
+                                    // per block
     case PixelFormat::kA8UNormInt:
     case PixelFormat::kR8UNormInt:
     case PixelFormat::kS8UInt:

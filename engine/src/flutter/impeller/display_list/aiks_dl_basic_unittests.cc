@@ -114,6 +114,17 @@ TEST_P(AiksTest, CanRenderImage) {
   ASSERT_TRUE(OpenPlaygroundHere(builder.Build()));
 }
 
+TEST_P(AiksTest, CanRenderCompressedImage) {
+  DisplayListBuilder builder;
+  DlPaint paint;
+  paint.setColor(DlColor::kRed());
+  auto image =
+      DlImageImpeller::Make(CreateTextureForFixture("color_grid_uastc.ktx2"));
+  builder.DrawImage(image, DlPoint(100.0, 100.0),
+                    DlImageSampling::kNearestNeighbor, &paint);
+  ASSERT_TRUE(OpenPlaygroundHere(builder.Build()));
+}
+
 TEST_P(AiksTest, CanRenderInvertedImageWithColorFilter) {
   DisplayListBuilder builder;
   DlPaint paint;

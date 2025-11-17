@@ -20,6 +20,7 @@ class TextureGLES final : public Texture,
  public:
   enum class Type {
     kTexture,
+    kTextureCompressed,
     kTextureMultisampled,
     kRenderBuffer,
     kRenderBufferMultisampled,

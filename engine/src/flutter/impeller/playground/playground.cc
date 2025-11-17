@@ -15,6 +15,7 @@
 #include "impeller/renderer/command_buffer.h"
 #include "impeller/renderer/render_target.h"
 #include "impeller/runtime_stage/runtime_stage.h"
+#include "include/core/SkColorType.h"
 
 #define GLFW_INCLUDE_NONE
 #include "third_party/glfw/include/GLFW/glfw3.h"
@@ -360,7 +361,8 @@ bool Playground::OpenPlaygroundHere(SinglePassCallback pass_callback) {
 
 std::shared_ptr<CompressedImage> Playground::LoadFixtureImageCompressed(
     std::shared_ptr<fml::Mapping> mapping) {
-  auto compressed_image = CompressedImageSkia::Create(std::move(mapping));
+  auto compressed_image = CompressedImageSkia::Create(
+      std::move(mapping), SkColorType::kRGBA_BC7_SkColorType);
   if (!compressed_image) {
     VALIDATION_LOG << "Could not create compressed image.";
     return nullptr;
@@ -386,6 +388,68 @@ std::optional<DecompressedImage> Playground::DecodeImageRGBA(
   }
 
   return image;
+}
+
+std::optional<DecompressedImage> Playground::TranscodeCompressedTextureImage(
+    const std::shared_ptr<CompressedImage>& compressed) {
+  if (compressed == nullptr) {
+    return std::nullopt;
+  }
+  // The decoded image is immediately converted into RGBA as that format is
+  // known to be supported everywhere. For image sources that don't need 32
+  // bit pixel strides, this is overkill. Since this is a test fixture we
+  // aren't necessarily trying to eke out memory savings here and instead
+  // favor simplicity.
+  auto image = compressed->Decode();
+  if (!image.IsValid()) {
+    VALIDATION_LOG << "Could not decode image.";
+    return std::nullopt;
+  }
+
+  return image;
+}
+
+static std::shared_ptr<Texture> CreateCompressedTextureForDecompressedImage(
+    const std::shared_ptr<Context>& context,
+    DecompressedImage& decompressed_image,
+    bool enable_mipmapping) {
+  TextureDescriptor texture_descriptor;
+  texture_descriptor.type = TextureType::kTexture2DCompressed;
+  texture_descriptor.storage_mode = StorageMode::kDevicePrivate;
+  texture_descriptor.format = PixelFormat::kCompressed;
+  texture_descriptor.size = decompressed_image.GetSize();
+  texture_descriptor.mip_count =
+      enable_mipmapping ? decompressed_image.GetSize().MipCount() : 1u;
+
+  auto texture =
+      context->GetResourceAllocator()->CreateTexture(texture_descriptor);
+  if (!texture) {
+    VALIDATION_LOG << "Could not allocate texture for fixture.";
+    return nullptr;
+  }
+
+  auto command_buffer = context->CreateCommandBuffer();
+  if (!command_buffer) {
+    FML_DLOG(ERROR) << "Could not create command buffer for mipmap generation.";
+    return nullptr;
+  }
+  command_buffer->SetLabel("Mipmap Command Buffer");
+
+  auto blit_pass = command_buffer->CreateBlitPass();
+  auto buffer_view = DeviceBuffer::AsBufferView(
+      context->GetResourceAllocator()->CreateBufferWithCopy(
+          *decompressed_image.GetAllocation()));
+  blit_pass->AddCopy(buffer_view, texture);
+  if (enable_mipmapping) {
+    blit_pass->SetLabel("Mipmap Blit Pass");
+    blit_pass->GenerateMipmap(texture);
+  }
+  blit_pass->EncodeCommands();
+  if (!context->GetCommandQueue()->Submit({command_buffer}).ok()) {
+    FML_DLOG(ERROR) << "Failed to submit blit pass command buffer.";
+    return nullptr;
+  }
+  return texture;
 }
 
 static std::shared_ptr<Texture> CreateTextureForDecompressedImage(
@@ -443,10 +507,35 @@ std::shared_ptr<Texture> Playground::CreateTextureForMapping(
                                            enable_mipmapping);
 }
 
+std::shared_ptr<Texture> Playground::CreateCompressedTextureForMapping(
+    const std::shared_ptr<Context>& context,
+    std::shared_ptr<fml::Mapping> mapping,
+    bool enable_mipmapping) {
+  auto image = Playground::TranscodeCompressedTextureImage(
+      Playground::LoadFixtureImageCompressed(std::move(mapping)));
+  if (!image.has_value()) {
+    return nullptr;
+  }
+  return CreateCompressedTextureForDecompressedImage(context, image.value(),
+                                                     enable_mipmapping);
+}
+
 std::shared_ptr<Texture> Playground::CreateTextureForFixture(
     const char* fixture_name,
     bool enable_mipmapping) const {
   auto texture = CreateTextureForMapping(
+      context_, OpenAssetAsMapping(fixture_name), enable_mipmapping);
+  if (texture == nullptr) {
+    return nullptr;
+  }
+  texture->SetLabel(fixture_name);
+  return texture;
+}
+
+std::shared_ptr<Texture> Playground::CreateCompressedTextureForFixture(
+    const char* fixture_name,
+    bool enable_mipmapping) const {
+  auto texture = CreateCompressedTextureForMapping(
       context_, OpenAssetAsMapping(fixture_name), enable_mipmapping);
   if (texture == nullptr) {
     return nullptr;

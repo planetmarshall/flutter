@@ -149,6 +149,7 @@ constexpr vk::Format ToVKImageFormat(PixelFormat format) {
     case PixelFormat::kB10G10R10XR:
     case PixelFormat::kB10G10R10A10XR:
     case PixelFormat::kB10G10R10XRSRGB:
+    case PixelFormat::kCompressed:
       return vk::Format::eUndefined;
     case PixelFormat::kA8UNormInt:
       // TODO(csg): This is incorrect. Don't depend on swizzle support for GLES.
@@ -414,6 +415,7 @@ constexpr vk::PrimitiveTopology ToVKPrimitiveTopology(PrimitiveType primitive) {
 constexpr bool PixelFormatIsDepthStencil(PixelFormat format) {
   switch (format) {
     case PixelFormat::kUnknown:
+    case PixelFormat::kCompressed:
     case PixelFormat::kA8UNormInt:
     case PixelFormat::kR8UNormInt:
     case PixelFormat::kR8G8UNormInt:
@@ -512,6 +514,7 @@ constexpr vk::StencilOpState ToVKStencilOpState(
 
 constexpr vk::ImageAspectFlags ToVKImageAspectFlags(PixelFormat format) {
   switch (format) {
+    case PixelFormat::kCompressed:
     case PixelFormat::kUnknown:
     case PixelFormat::kA8UNormInt:
     case PixelFormat::kR8UNormInt:
@@ -539,6 +542,7 @@ constexpr vk::ImageAspectFlags ToVKImageAspectFlags(PixelFormat format) {
 constexpr uint32_t ToArrayLayerCount(TextureType type) {
   switch (type) {
     case TextureType::kTexture2D:
+    case TextureType::kTexture2DCompressed:
     case TextureType::kTexture2DMultisample:
       return 1u;
     case TextureType::kTextureCube:
@@ -553,6 +557,7 @@ constexpr uint32_t ToArrayLayerCount(TextureType type) {
 constexpr vk::ImageViewType ToVKImageViewType(TextureType type) {
   switch (type) {
     case TextureType::kTexture2D:
+    case TextureType::kTexture2DCompressed:
     case TextureType::kTexture2DMultisample:
       return vk::ImageViewType::e2D;
     case TextureType::kTextureCube:
@@ -567,6 +572,7 @@ constexpr vk::ImageViewType ToVKImageViewType(TextureType type) {
 constexpr vk::ImageCreateFlags ToVKImageCreateFlags(TextureType type) {
   switch (type) {
     case TextureType::kTexture2D:
+    case TextureType::kTexture2DCompressed:
     case TextureType::kTexture2DMultisample:
       return {};
     case TextureType::kTextureCube:
@@ -587,6 +593,7 @@ constexpr vk::ImageAspectFlags ToImageAspectFlags(PixelFormat format) {
   switch (format) {
     case PixelFormat::kUnknown:
       return {};
+    case PixelFormat::kCompressed:
     case PixelFormat::kA8UNormInt:
     case PixelFormat::kR8UNormInt:
     case PixelFormat::kR8G8UNormInt:

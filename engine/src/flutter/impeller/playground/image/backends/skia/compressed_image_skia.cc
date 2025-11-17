@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "impeller/base/validation.h"
+#include "include/core/SkColorType.h"
 #include "third_party/skia/include/core/SkBitmap.h"
 #include "third_party/skia/include/core/SkData.h"
 #include "third_party/skia/include/core/SkImage.h"
@@ -16,17 +17,20 @@
 namespace impeller {
 
 std::shared_ptr<CompressedImage> CompressedImageSkia::Create(
-    std::shared_ptr<const fml::Mapping> allocation) {
+    std::shared_ptr<const fml::Mapping> allocation,
+    SkColorType colorType) {
   // There is only one backend today.
   if (!allocation) {
     return nullptr;
   }
-  return std::make_shared<CompressedImageSkia>(std::move(allocation));
+  return std::make_shared<CompressedImageSkia>(std::move(allocation),
+                                               colorType);
 }
 
 CompressedImageSkia::CompressedImageSkia(
-    std::shared_ptr<const fml::Mapping> allocation)
-    : CompressedImage(std::move(allocation)) {}
+    std::shared_ptr<const fml::Mapping> allocation,
+    SkColorType colorType)
+    : CompressedImage(std::move(allocation)), fColorType(colorType) {}
 
 CompressedImageSkia::~CompressedImageSkia() = default;
 
@@ -53,8 +57,8 @@ DecompressedImage CompressedImageSkia::Decode() const {
   }
 
   const auto dims = image->imageInfo().dimensions();
-  auto info = SkImageInfo::Make(dims.width(), dims.height(),
-                                kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+  auto info = SkImageInfo::Make(dims.width(), dims.height(), fColorType,
+                                kPremul_SkAlphaType);
 
   auto bitmap = std::make_shared<SkBitmap>();
   if (!bitmap->tryAllocPixels(info)) {

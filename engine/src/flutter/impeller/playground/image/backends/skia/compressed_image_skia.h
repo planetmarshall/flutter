@@ -6,15 +6,18 @@
 #define FLUTTER_IMPELLER_PLAYGROUND_IMAGE_BACKENDS_SKIA_COMPRESSED_IMAGE_SKIA_H_
 
 #include "impeller/playground/image/compressed_image.h"
+#include "include/core/SkColorType.h"
 
 namespace impeller {
 
 class CompressedImageSkia final : public CompressedImage {
  public:
   static std::shared_ptr<CompressedImage> Create(
-      std::shared_ptr<const fml::Mapping> allocation);
+      std::shared_ptr<const fml::Mapping> allocation,
+      SkColorType colorType = kRGBA_8888_SkColorType);
 
-  explicit CompressedImageSkia(std::shared_ptr<const fml::Mapping> allocation);
+  explicit CompressedImageSkia(std::shared_ptr<const fml::Mapping> allocation,
+                               SkColorType colorType);
 
   ~CompressedImageSkia() override;
 
@@ -25,6 +28,7 @@ class CompressedImageSkia final : public CompressedImage {
   CompressedImageSkia(const CompressedImageSkia&) = delete;
 
   CompressedImageSkia& operator=(const CompressedImageSkia&) = delete;
+  SkColorType fColorType;
 };
 
 }  // namespace impeller
