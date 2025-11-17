@@ -164,6 +164,7 @@ vars = {
   "upstream_imgui": "https://github.com/ocornut/imgui.git",
   "upstream_inja": "https://github.com/pantor/inja.git",
   "upstream_json": "https://github.com/nlohmann/json.git",
+  "upstream_KTX-Software": "https://github.com/KhronosGroup/KTX-Software.git",
   "upstream_libcxx": "https://github.com/llvm-mirror/libcxx.git",
   "upstream_libcxxabi": "https://github.com/llvm-mirror/libcxxabi.git",
   "upstream_libexpat": "https://github.com/libexpat/libexpat.git",
@@ -488,6 +489,9 @@ deps = {
 
   'engine/src/flutter/third_party/ocmock':
    Var('flutter_git') + '/third_party/ocmock' + '@' +  Var('ocmock_rev'),
+
+  'engine/src/flutter/third_party/KTX-Software':
+   Var('flutter_git') + '/third_party/KTX-Software' + '@' + '0306d6a614ddde1b88c2a1b7d65186a20cdd4d25',
 
   'engine/src/flutter/third_party/libjpeg-turbo/src':
    Var('flutter_git') + '/third_party/libjpeg-turbo' + '@' + '0fb821f3b2e570b2783a94ccd9a2fb1f4916ae9f',
