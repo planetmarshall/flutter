@@ -362,7 +362,7 @@ bool Playground::OpenPlaygroundHere(SinglePassCallback pass_callback) {
 std::shared_ptr<CompressedImage> Playground::LoadFixtureImageCompressed(
     std::shared_ptr<fml::Mapping> mapping) {
   auto compressed_image = CompressedImageSkia::Create(
-      std::move(mapping), SkColorType::kRGBA_BC7_SkColorType);
+      std::move(mapping), SkColorType::kRGBA_ASTC4x4_SkColorType);
   if (!compressed_image) {
     VALIDATION_LOG << "Could not create compressed image.";
     return nullptr;

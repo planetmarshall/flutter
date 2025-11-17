@@ -104,7 +104,8 @@ TEST_P(DisplayListTest, CanDrawImage) {
 }
 
 TEST_P(DisplayListTest, CanDrawCompressedImage) {
-  auto texture = CreateCompressedTextureForFixture("color_grid_uastc.ktx2");
+  auto texture =
+      CreateCompressedTextureForFixture("color_grid_uastc_zstd.ktx2");
   ASSERT_TRUE(texture);
   flutter::DisplayListBuilder builder;
   builder.DrawImage(DlImageImpeller::Make(texture), DlPoint(100, 100),

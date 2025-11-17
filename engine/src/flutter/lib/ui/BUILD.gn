@@ -224,7 +224,7 @@ if (enable_unittests) {
       "fixtures/DashInNooglerHat%20WithSpace.jpg",
       "fixtures/DisplayP3Logo.jpg",
       "fixtures/DisplayP3Logo.png",
-      "fixtures/color_grid_uastc.ktx2",
+      "fixtures/color_grid_uastc_zstd.ktx2",
       "fixtures/Horizontal.jpg",
       "fixtures/Horizontal.png",
       "fixtures/heart_end.png",

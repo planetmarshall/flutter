@@ -123,7 +123,7 @@ struct TexImage2DData {
         type = GL_UNSIGNED_INT_24_8;
         break;
       case PixelFormat::kCompressed:
-        internal_format = GL_COMPRESSED_RGBA_BPTC_UNORM_EXT;
+        internal_format = GL_COMPRESSED_RGBA_ASTC_4x4_KHR;
         break;
       case PixelFormat::kUnknown:
       case PixelFormat::kD32FloatS8UInt:

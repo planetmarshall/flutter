@@ -34,7 +34,7 @@ class ImageDescriptor : public RefCountedDartWrappable<ImageDescriptor> {
   ~ImageDescriptor() override = default;
 
   // This must be kept in sync with the enum in painting.dart
-  enum PixelFormat { kRGBA8888, kBGRA8888, kRGBAFloat32, kBlockCompressed4x4 };
+  enum PixelFormat { kRGBA8888, kBGRA8888, kRGBAFloat32, kRGBAASTC4x4 };
 
   /// @brief  Asynchronously initializes an ImageDescriptor for an encoded
   ///         image, as long as the format is recognized by an encoder installed

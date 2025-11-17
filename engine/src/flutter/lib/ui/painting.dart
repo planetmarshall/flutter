@@ -1910,8 +1910,8 @@ enum PixelFormat {
   /// used, matching [ImageByteFormat.rawExtendedRgba128].
   rgbaFloat32,
 
-  /// A 4x4 block compressed texture format
-  blockCompressed4x4,
+  /// Pixels are in 4x4 128bit blocks compressed using the ASTC algorithm
+  rgbaAstc4x4,
 }
 
 /// Signature for [Image] lifecycle events.

@@ -811,7 +811,8 @@ TEST(ImageDecoderTest,
 }
 
 TEST(ImageDecoderTest, DecodeKtx2Image) {
-  auto data = flutter::testing::OpenFixtureAsSkData("color_grid_uastc.ktx2");
+  auto data =
+      flutter::testing::OpenFixtureAsSkData("color_grid_uastc_zstd.ktx2");
   auto image = SkImages::DeferredFromEncodedData(data);
   ASSERT_TRUE(image != nullptr);
   EXPECT_EQ(1024, image->width());
@@ -819,7 +820,8 @@ TEST(ImageDecoderTest, DecodeKtx2Image) {
 }
 
 TEST(ImageDecoderTest, DecodeKtx2ImageToTexture) {
-  auto data = flutter::testing::OpenFixtureAsSkData("color_grid_uastc.ktx2");
+  auto data =
+      flutter::testing::OpenFixtureAsSkData("color_grid_uastc_zstd.ktx2");
   auto image = SkImages::DeferredFromEncodedData(data);
   ASSERT_TRUE(image != nullptr);
 

@@ -85,7 +85,7 @@ static std::optional<impeller::PixelFormat> ToPixelFormat(SkColorType type) {
       return impeller::PixelFormat::kR16G16B16A16Float;
     case kBGR_101010x_XR_SkColorType:
       return impeller::PixelFormat::kB10G10R10XR;
-    case kRGBA_BC7_SkColorType:
+    case kRGBA_ASTC4x4_SkColorType:
       return impeller::PixelFormat::kCompressed;
     default:
       return std::nullopt;
@@ -121,8 +121,8 @@ static SkColorType ChooseCompatibleColorType(SkColorType type) {
   switch (type) {
     case kRGBA_F32_SkColorType:
       return kRGBA_F16_SkColorType;
-    case kRGBA_BC7_SkColorType:
-      return kRGBA_BC7_SkColorType;
+    case kRGBA_ASTC4x4_SkColorType:
+      return kRGBA_ASTC4x4_SkColorType;
     default:
       return kRGBA_8888_SkColorType;
   }

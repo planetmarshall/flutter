@@ -99,8 +99,8 @@ void ImageDescriptor::initRaw(Dart_Handle descriptor_handle,
       color_type = kRGBA_F32_SkColorType;
       alpha_type = kUnpremul_SkAlphaType;
       break;
-    case PixelFormat::kBlockCompressed4x4:
-      color_type = kRGBA_BC7_SkColorType;
+    case PixelFormat::kRGBAASTC4x4:
+      color_type = kRGBA_ASTC4x4_SkColorType;
       break;
   }
   FML_DCHECK(color_type != kUnknown_SkColorType);

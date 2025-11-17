@@ -121,7 +121,7 @@ test_fixtures("file_fixtures") {
     "blend_mode_src.png",
     "blue_noise.png",
     "boston.jpg",
-    "color_grid_uastc.ktx2",
+    "color_grid_uastc_zstd.ktx2",
     "embarcadero.jpg",
     "flutter_gpu_texture.frag",
     "flutter_gpu_texture.vert",

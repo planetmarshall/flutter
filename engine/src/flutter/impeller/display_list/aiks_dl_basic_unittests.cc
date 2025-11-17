@@ -118,8 +118,8 @@ TEST_P(AiksTest, CanRenderCompressedImage) {
   DisplayListBuilder builder;
   DlPaint paint;
   paint.setColor(DlColor::kRed());
-  auto image =
-      DlImageImpeller::Make(CreateTextureForFixture("color_grid_uastc.ktx2"));
+  auto image = DlImageImpeller::Make(
+      CreateTextureForFixture("color_grid_uastc_zstd.ktx2"));
   builder.DrawImage(image, DlPoint(100.0, 100.0),
                     DlImageSampling::kNearestNeighbor, &paint);
   ASSERT_TRUE(OpenPlaygroundHere(builder.Build()));
