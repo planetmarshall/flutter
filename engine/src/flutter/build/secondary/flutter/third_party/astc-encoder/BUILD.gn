@@ -1,4 +1,4 @@
-source_root = "//flutter/third_party/KTX-Software/external/astc-encoder/Source"
+source_root = "//flutter/third_party/ktx/external/astc-encoder/Source"
 
 config("astc_encoder_config") {
   include_dirs = [

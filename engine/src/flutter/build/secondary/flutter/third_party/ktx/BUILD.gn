@@ -1,4 +1,4 @@
-source_root = "//flutter/third_party/KTX-Software"
+source_root = "//flutter/third_party/ktx"
 
 config("ktx_defines") {
   defines = [
