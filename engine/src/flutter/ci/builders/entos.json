@@ -1,0 +1,76 @@
+
+{
+  "builds": [
+    {
+      "cas_archive": false,
+      "drone_dimensions": [
+        "os=Linux",
+        "device_type=none"
+      ],
+      "gclient_variables": {
+        "download_android_deps": false,
+        "download_jdk": false,
+        "use_rbe": true
+      },
+      "gn": [
+        "--unoptimized",
+        "--runtime-mode=debug",
+        "--target-os=linux",
+        "--linux-cpu=arm",
+        "--arm-float-abi=hard",
+        "--target-triple=armv7-unknown-linux-gnueabihf",
+        "--target-sysroot=/home/andrew/projects/sky/rdk/kirkstone-armv7-qt515/sysroots/armv7at2hf-neon-rdk-linux-gnueabi",
+        "--target-toolchain=/home/andrew/projects/sky/morpho/flutter/engine/src/flutter/buildtools/linux-x64/clang",
+        "--target-dir=entos_debug_unopt_armv7",
+        "--enable-minimal-linux",
+        "--disable-desktop-embeddings",
+        "--embedder-for-target",
+        "--no-enable-unittests",
+        "--ccache"
+      ],
+      "name": "linux/entos_debug_unopt_armv7",
+      "description": "Builds an unoptimized debug mode engine for entos from a linux host",
+      "ninja": {
+        "config": "entos_debug_unopt_armv7",
+        "targets": [
+        ]
+      }
+    },
+    {
+      "cas_archive": false,
+      "drone_dimensions": [
+        "os=Linux",
+        "device_type=none"
+      ],
+      "gclient_variables": {
+        "download_android_deps": false,
+        "download_jdk": false,
+        "use_rbe": true
+      },
+      "gn": [
+        "--runtime-mode=profile",
+        "--target-os=linux",
+        "--linux-cpu=arm",
+        "--arm-float-abi=hard",
+        "--target-triple=armv7-unknown-linux-gnueabihf",
+        "--target-sysroot=/home/andrew/projects/sky/rdk/kirkstone-armv7-qt515/sysroots/armv7at2hf-neon-rdk-linux-gnueabi",
+        "--target-toolchain=/home/andrew/projects/sky/morpho/flutter/engine/src/flutter/buildtools/linux-x64/clang",
+        "--target-dir=entos_profile_armv7",
+        "--enable-minimal-linux",
+        "--disable-desktop-embeddings",
+        "--no-enable-unittests",
+        "--embedder-for-target",
+        "--lto",
+        "--ccache"
+      ],
+      "name": "linux/entos_profile_armv7",
+      "description": "Builds an optimized profile mode engine for entos from a linux host",
+      "ninja": {
+        "config": "entos_profile_armv7",
+        "targets": [
+          "flutter/shell/platform/embedder:flutter_engine"
+        ]
+      }
+    }
+  ]
+}
