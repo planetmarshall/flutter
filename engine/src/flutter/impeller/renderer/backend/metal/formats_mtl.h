@@ -76,6 +76,7 @@ MTLPixelFormat SafeMTLPixelFormatBGRA10_XR();
 constexpr MTLPixelFormat ToMTLPixelFormat(PixelFormat format) {
   switch (format) {
     case PixelFormat::kUnknown:
+    case PixelFormat::kCompressed:
       return MTLPixelFormatInvalid;
     case PixelFormat::kA8UNormInt:
       return MTLPixelFormatA8Unorm;
@@ -386,6 +387,9 @@ constexpr MTLTextureType ToMTLTextureType(TextureType type) {
     case TextureType::kTextureExternalOES:
       VALIDATION_LOG
           << "kTextureExternalOES can not be used with the Metal backend.";
+    case TextureType::kTexture2DCompressed:
+      VALIDATION_LOG
+          << "kTexture2DCompressed can not be used with the Metal backend.";
   }
   return MTLTextureType2D;
 }

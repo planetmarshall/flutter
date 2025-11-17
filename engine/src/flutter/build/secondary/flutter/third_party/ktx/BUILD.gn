@@ -1,65 +1,12 @@
 source_root = "//flutter/third_party/ktx"
 
-config("ktx_defines") {
-  defines = [
-    "BASISD_SUPPORT_KTX2_ZSTD=0",
-    "BASISD_SUPPORT_KTX2=0"
+config("ktx_public_config") {
+  include_dirs = [
+    "$source_root/include",
   ]
 }
 
 config("ktx_config") {
-  include_dirs = [
-    "$source_root/include",
-  ]
-}
-
-source_set("ktx_vulkan_upload") {
-  include_dirs = [
-    "$source_root/include",
-    "$source_root/external/dfdutils",
-    "$source_root/utils",
-  ]
-    sources = [
-        "$source_root/lib/vk_funcs.c",
-        "$source_root/lib/vkloader.c",
-    ]
-}
-
-source_set("ktx_opengl_upload") {
-  include_dirs = [
-    "$source_root/include",
-    "$source_root/utils",
-    "$source_root/other_include",
-  ]
-    sources = [
-        "$source_root/lib/gl_funcs.c",
-        "$source_root/lib/glloader.c",
-    ]
-}
-
-source_set("ktx_etc_unpack") {
-  include_dirs = [
-    "$source_root/external/etcdec",
-  ]
-    sources = [
-        "$source_root/external/etcdec/etcdec.cxx",
-    ]
-}
-
-source_set("ktx_feature_ktx1") {
-  include_dirs = [
-    "$source_root/include",
-    "$source_root/lib",
-    "$source_root/external",
-    "$source_root/utils",
-  ]
-    sources = [
-        "$source_root/lib/texture1.c"
-    ]
-}
-
-source_set("ktx_main") {
-  configs += [ ":ktx_defines" ]
   include_dirs = [
     "$source_root/include",
     "$source_root/lib",
@@ -70,6 +17,57 @@ source_set("ktx_main") {
     "$source_root/external/utils",
     "$source_root/utils",
     "$source_root/other_include",
+  ]
+  cflags_c = [
+    "-std=c11"
+  ]
+  defines = [
+    "BASISD_SUPPORT_KTX2_ZSTD=0",
+    "BASISD_SUPPORT_KTX2=0"
+  ]
+}
+
+source_set("ktx_vulkan_upload") {
+  configs += [
+    ":ktx_config"
+  ]
+  sources = [
+        "$source_root/lib/vk_funcs.c",
+        "$source_root/lib/vkloader.c",
+  ]
+}
+
+source_set("ktx_opengl_upload") {
+  configs += [
+    ":ktx_config"
+  ]
+  sources = [
+        "$source_root/lib/gl_funcs.c",
+        "$source_root/lib/glloader.c",
+  ]
+}
+
+source_set("ktx_etc_unpack") {
+  configs += [
+    ":ktx_config"
+  ]
+  sources = [
+    "$source_root/external/etcdec/etcdec.cxx",
+  ]
+}
+
+source_set("ktx_feature_ktx1") {
+  configs += [
+    ":ktx_config"
+  ]
+  sources = [
+    "$source_root/lib/texture1.c"
+  ]
+}
+
+source_set("ktx_main") {
+  configs += [
+    ":ktx_config"
   ]
   sources = [
     "$source_root/lib/astc_codec.cpp",
@@ -100,9 +98,10 @@ source_set("ktx_main") {
   ]
 }
 
-
 static_library("ktx_read") {
-  public_configs = [ ":ktx_config" ]
+  public_configs = [
+    ":ktx_public_config"
+  ]
   deps = [
     ":ktx_main",
     ":ktx_etc_unpack",
