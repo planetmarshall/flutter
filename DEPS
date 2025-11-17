@@ -492,7 +492,7 @@ deps = {
    Var('flutter_git') + '/third_party/ocmock' + '@' +  Var('ocmock_rev'),
 
   'engine/src/flutter/third_party/ktx':
-   Var('github_git') + 'KhronosGroup/KTX-Software' + '@' + '0306d6a614ddde1b88c2a1b7d65186a20cdd4d25',
+   Var('github_git') + '/KhronosGroup/KTX-Software' + '@' + '0306d6a614ddde1b88c2a1b7d65186a20cdd4d25',
 
   'engine/src/flutter/third_party/libjpeg-turbo/src':
    Var('flutter_git') + '/third_party/libjpeg-turbo' + '@' + '0fb821f3b2e570b2783a94ccd9a2fb1f4916ae9f',
