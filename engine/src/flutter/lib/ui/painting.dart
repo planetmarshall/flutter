@@ -1909,6 +1909,9 @@ enum PixelFormat {
   /// component, followed by: green, blue and alpha. Premultiplied alpha isn't
   /// used, matching [ImageByteFormat.rawExtendedRgba128].
   rgbaFloat32,
+
+  /// A 4x4 block compressed texture format
+  blockCompressed4x4,
 }
 
 /// Signature for [Image] lifecycle events.

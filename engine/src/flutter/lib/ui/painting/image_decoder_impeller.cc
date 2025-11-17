@@ -85,6 +85,8 @@ static std::optional<impeller::PixelFormat> ToPixelFormat(SkColorType type) {
       return impeller::PixelFormat::kR16G16B16A16Float;
     case kBGR_101010x_XR_SkColorType:
       return impeller::PixelFormat::kB10G10R10XR;
+    case kRGBA_BC7_SkColorType:
+      return impeller::PixelFormat::kCompressed;
     default:
       return std::nullopt;
   }
@@ -119,6 +121,8 @@ static SkColorType ChooseCompatibleColorType(SkColorType type) {
   switch (type) {
     case kRGBA_F32_SkColorType:
       return kRGBA_F16_SkColorType;
+    case kRGBA_BC7_SkColorType:
+      return kRGBA_BC7_SkColorType;
     default:
       return kRGBA_8888_SkColorType;
   }
@@ -165,6 +169,7 @@ DecompressResult ImageDecoderImpeller::DecompressTexture(
   SkAlphaType alpha_type =
       ChooseCompatibleAlphaType(base_image_info.alphaType());
   SkImageInfo image_info;
+  // Again, doesn't make sense for compressed textures
   if (is_wide_gamut) {
     SkColorType color_type = alpha_type == SkAlphaType::kOpaque_SkAlphaType
                                  ? kBGR_101010x_XR_SkColorType
@@ -227,7 +232,10 @@ DecompressResult ImageDecoderImpeller::DecompressTexture(
   }
 
   // If the image is unpremultiplied, fix it.
-  if (alpha_type == SkAlphaType::kUnpremul_SkAlphaType) {
+
+  // TODO just handle compressed textures separately
+  if (alpha_type == SkAlphaType::kUnpremul_SkAlphaType &&
+      pixel_format != impeller::PixelFormat::kCompressed) {
     // Single copy of ImpellerAllocator crashes.
     auto premul_allocator = std::make_shared<ImpellerAllocator>(allocator);
     auto premul_bitmap = std::make_shared<SkBitmap>();
@@ -319,9 +327,15 @@ ImageDecoderImpeller::UnsafeUploadTextureToPrivate(
 
   impeller::TextureDescriptor texture_descriptor;
   texture_descriptor.storage_mode = impeller::StorageMode::kDevicePrivate;
-  texture_descriptor.format = pixel_format.value();
   texture_descriptor.size = {image_info.width(), image_info.height()};
-  texture_descriptor.mip_count = texture_descriptor.size.MipCount();
+  texture_descriptor.format = pixel_format.value();
+  if (texture_descriptor.format == impeller::PixelFormat::kCompressed) {
+    texture_descriptor.type = impeller::TextureType::kTexture2DCompressed;
+    // We don't support generating mip maps for compressed textures
+    texture_descriptor.mip_count = 1u;
+  } else {
+    texture_descriptor.mip_count = texture_descriptor.size.MipCount();
+  }
   if (context->GetBackendType() == impeller::Context::BackendType::kMetal &&
       resize_info.has_value()) {
     // The MPS used to resize images on iOS does not require mip generation.

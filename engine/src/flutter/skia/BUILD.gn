@@ -593,7 +593,7 @@ optional("ktx_decode") {
   enabled = skia_use_libktx_decode
   public_defines = [ "SK_CODEC_DECODES_KTX" ]
 
-  deps = [ "//flutter/third_party/KTX-Software:libktx_read" ]
+  deps = [ "//flutter/third_party/KTX-Software:ktx_read" ]
   sources = [ "$_skia_root/src/codec/SkKtxCodec.cpp" ]
 }
 

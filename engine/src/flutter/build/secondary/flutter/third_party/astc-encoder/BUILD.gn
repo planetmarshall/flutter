@@ -1,0 +1,37 @@
+source_root = "//flutter/third_party/KTX-Software/external/astc-encoder/Source"
+
+config("astc_encoder_config") {
+  include_dirs = [
+    "$source_root",
+  ]
+}
+
+# This is the backend-agnostic version of the astc encoder
+# TODO: use the optimized backends where available (assume SSE2 or Neon?)
+static_library("astcenc-none-static") {
+  public_configs = [ ":astc_encoder_config" ]
+  sources = [
+     "$source_root/astcenc_averages_and_directions.cpp",
+        "$source_root/astcenc_block_sizes.cpp",
+        "$source_root/astcenc_color_quantize.cpp",
+        "$source_root/astcenc_color_unquantize.cpp",
+        "$source_root/astcenc_compress_symbolic.cpp",
+        "$source_root/astcenc_compute_variance.cpp",
+        "$source_root/astcenc_decompress_symbolic.cpp",
+        "$source_root/astcenc_diagnostic_trace.cpp",
+        "$source_root/astcenc_entry.cpp",
+        "$source_root/astcenc_find_best_partitioning.cpp",
+        "$source_root/astcenc_ideal_endpoints_and_weights.cpp",
+        "$source_root/astcenc_image.cpp",
+        "$source_root/astcenc_integer_sequence.cpp",
+        "$source_root/astcenc_mathlib.cpp",
+        "$source_root/astcenc_mathlib_softfloat.cpp",
+        "$source_root/astcenc_partition_tables.cpp",
+        "$source_root/astcenc_percentile_tables.cpp",
+        "$source_root/astcenc_pick_best_endpoint_format.cpp",
+        "$source_root/astcenc_quantization.cpp",
+        "$source_root/astcenc_symbolic_physical.cpp",
+        "$source_root/astcenc_weight_align.cpp",
+        "$source_root/astcenc_weight_quant_xfer_tables.cpp",
+]
+}

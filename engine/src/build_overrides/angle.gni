@@ -17,6 +17,15 @@ if (!is_fuchsia) {
   angle_has_build = true
 }
 
+# swiftshader includes sources from ARM's astc-encoder which conflicts with
+# the ktx libraries. The general pattern in GN to solve this kind of thing
+# seems to be an argument that controls the path to the astc sources.
+# this would need a patch to the swiftshader build files
+
+angle_enable_swiftshader=false
+use_swiftshader=false
+
+
 # Overrides for ANGLE's dependencies.
 angle_abseil_cpp_dir = "//third_party/abseil-cpp"
 angle_glslang_dir = "//flutter/third_party/vulkan-deps/glslang/src"

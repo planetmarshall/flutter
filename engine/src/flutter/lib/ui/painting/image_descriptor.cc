@@ -10,6 +10,7 @@
 #include "flutter/lib/ui/painting/multi_frame_codec.h"
 #include "flutter/lib/ui/painting/single_frame_codec.h"
 #include "flutter/lib/ui/ui_dart_state.h"
+#include "include/core/SkColorType.h"
 #include "third_party/tonic/dart_binding_macros.h"
 #include "third_party/tonic/logging/dart_invoke.h"
 
@@ -97,6 +98,9 @@ void ImageDescriptor::initRaw(Dart_Handle descriptor_handle,
       // `PixelFormat.rgbaFloat32` is documented to not use premultiplied alpha.
       color_type = kRGBA_F32_SkColorType;
       alpha_type = kUnpremul_SkAlphaType;
+      break;
+    case PixelFormat::kBlockCompressed4x4:
+      color_type = kRGBA_BC7_SkColorType;
       break;
   }
   FML_DCHECK(color_type != kUnknown_SkColorType);

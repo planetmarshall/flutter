@@ -7,3 +7,6 @@ swiftshader_standalone = false
 
 # Path to SwiftShader.
 swiftshader_dir = "//flutter/third_party/swiftshader"
+
+# swiftshader includes ASTC sources which cause symbol conflicts with KTX
+swiftshader_enable_astc = false

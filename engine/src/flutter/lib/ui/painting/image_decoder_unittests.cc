@@ -818,6 +818,36 @@ TEST(ImageDecoderTest, DecodeKtx2Image) {
   EXPECT_EQ(1024, image->height());
 }
 
+TEST(ImageDecoderTest, DecodeKtx2ImageToTexture) {
+  auto data = flutter::testing::OpenFixtureAsSkData("color_grid_uastc.ktx2");
+  auto image = SkImages::DeferredFromEncodedData(data);
+  ASSERT_TRUE(image != nullptr);
+
+  ImageGeneratorRegistry registry;
+  std::shared_ptr<ImageGenerator> generator =
+      registry.CreateCompatibleGenerator(data);
+  ASSERT_TRUE(generator);
+  auto descriptor = fml::MakeRefCounted<ImageDescriptor>(std::move(data),
+                                                         std::move(generator));
+
+#if IMPELLER_SUPPORTS_RENDERING
+  std::shared_ptr<impeller::Capabilities> capabilities =
+      impeller::CapabilitiesBuilder()
+          .SetSupportsTextureToTextureBlits(true)
+          .Build();
+  std::shared_ptr<impeller::Allocator> allocator =
+      std::make_shared<impeller::TestImpellerAllocator>();
+
+  // Resizing a compressed texture doesn't make sense - so we should add a test
+  // for that
+  auto result = ImageDecoderImpeller::DecompressTexture(
+      descriptor.get(), SkISize::Make(1024, 1024), {1024, 1024},
+      /*supports_wide_gamut=*/false, capabilities, allocator);
+  EXPECT_EQ(result.sk_bitmap->width(), 1024);
+  EXPECT_EQ(result.sk_bitmap->height(), 1024);
+#endif
+}
+
 TEST(ImageDecoderTest, VerifySimpleDecoding) {
   auto data = flutter::testing::OpenFixtureAsSkData("Horizontal.jpg");
   auto image = SkImages::DeferredFromEncodedData(data);

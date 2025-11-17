@@ -313,14 +313,15 @@ bool BlitCopyBufferToTextureCommandGLES::Encode(
                     nullptr                      // data
       );
     } else if (tex_descriptor.type == TextureType::kTexture2DCompressed) {
+      const auto data_size = data.buffer_view.GetRange().length;
       gl.CompressedTexImage2D(texture_target,              // target
                               mip_level,                   // LOD level
                               data.internal_format,        // internal format
                               tex_descriptor.size.width,   // width
                               tex_descriptor.size.height,  // height
                               0u,                          // border
-                              1024 * 1024,  // image size (in bytes)
-                              nullptr       // data
+                              data_size,                   // image size
+                              nullptr                      // data
       );
     }
     texture_gles.MarkSliceInitialized(slice);
@@ -341,6 +342,7 @@ bool BlitCopyBufferToTextureCommandGLES::Encode(
 
       );
     } else if (tex_descriptor.type == TextureType::kTexture2DCompressed) {
+      const auto data_size = data.buffer_view.GetRange().length;
       gl.CompressedTexSubImage2D(texture_target,                  // target
                                  mip_level,                       // LOD level
                                  destination_region.GetX(),       // xoffset
@@ -348,7 +350,7 @@ bool BlitCopyBufferToTextureCommandGLES::Encode(
                                  destination_region.GetWidth(),   // width
                                  destination_region.GetHeight(),  // height
                                  data.internal_format,            // format
-                                 1024 * 1024,                     // size
+                                 data_size,                       // data size
                                  tex_data                         // data
       );
     }

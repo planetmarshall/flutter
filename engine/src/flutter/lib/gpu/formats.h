@@ -103,6 +103,7 @@ constexpr FlutterGPUPixelFormat FromImpellerPixelFormat(
     impeller::PixelFormat value) {
   switch (value) {
     case impeller::PixelFormat::kUnknown:
+    case impeller::PixelFormat::kCompressed:
       return FlutterGPUPixelFormat::kUnknown;
     case impeller::PixelFormat::kA8UNormInt:
       return FlutterGPUPixelFormat::kA8UNormInt;

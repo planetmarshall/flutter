@@ -1,47 +1,16 @@
 source_root = "//flutter/third_party/KTX-Software"
 
-config("libktx_defines") {
+config("ktx_defines") {
   defines = [
     "BASISD_SUPPORT_KTX2_ZSTD=0",
     "BASISD_SUPPORT_KTX2=0"
   ]
 }
 
-config("libktx_config") {
+config("ktx_config") {
   include_dirs = [
     "$source_root/include",
   ]
-}
-
-source_set("astc_encoder") {
-    astc_source_root = "$source_root/external/astc-encoder/Source"
-    include_dirs = [
-        "$astc_source_root"
-    ]
-sources = [
-     "$astc_source_root/astcenc_averages_and_directions.cpp",
-        "$astc_source_root/astcenc_block_sizes.cpp",
-        "$astc_source_root/astcenc_color_quantize.cpp",
-        "$astc_source_root/astcenc_color_unquantize.cpp",
-        "$astc_source_root/astcenc_compress_symbolic.cpp",
-        "$astc_source_root/astcenc_compute_variance.cpp",
-        "$astc_source_root/astcenc_decompress_symbolic.cpp",
-        "$astc_source_root/astcenc_diagnostic_trace.cpp",
-        "$astc_source_root/astcenc_entry.cpp",
-        "$astc_source_root/astcenc_find_best_partitioning.cpp",
-        "$astc_source_root/astcenc_ideal_endpoints_and_weights.cpp",
-        "$astc_source_root/astcenc_image.cpp",
-        "$astc_source_root/astcenc_integer_sequence.cpp",
-        "$astc_source_root/astcenc_mathlib.cpp",
-        "$astc_source_root/astcenc_mathlib_softfloat.cpp",
-        "$astc_source_root/astcenc_partition_tables.cpp",
-        "$astc_source_root/astcenc_percentile_tables.cpp",
-        "$astc_source_root/astcenc_pick_best_endpoint_format.cpp",
-        "$astc_source_root/astcenc_quantization.cpp",
-        "$astc_source_root/astcenc_symbolic_physical.cpp",
-        "$astc_source_root/astcenc_weight_align.cpp",
-        "$astc_source_root/astcenc_weight_quant_xfer_tables.cpp",
-]
 }
 
 source_set("ktx_vulkan_upload") {
@@ -90,7 +59,7 @@ source_set("ktx_feature_ktx1") {
 }
 
 source_set("ktx_main") {
-  configs += [ ":libktx_defines" ]
+  configs += [ ":ktx_defines" ]
   include_dirs = [
     "$source_root/include",
     "$source_root/lib",
@@ -131,14 +100,15 @@ source_set("ktx_main") {
   ]
 }
 
-static_library("libktx_read") {
-  public_configs = [ ":libktx_config" ]
+
+static_library("ktx_read") {
+  public_configs = [ ":ktx_config" ]
   deps = [
     ":ktx_main",
     ":ktx_etc_unpack",
     ":ktx_feature_ktx1",
     ":ktx_opengl_upload",
     ":ktx_vulkan_upload",
-    ":astc_encoder",
+    "//flutter/third_party/astc-encoder:astcenc-none-static"
      ]
 }
