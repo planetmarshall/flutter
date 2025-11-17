@@ -1,11 +1,11 @@
-# Flutter (Entos Fork)
+# Flutter (GPU Texture Compression POC)
 
-This is the Entos fork of Google's Flutter Framework. See Flutter's docs for full details, in summary - to build the engine:
+This branch is a Proof of Concept for GPU Texture Compression in Flutter
 
 1. Get [Google's developer tools](https://chromium.googlesource.com/chromium/tools/depot_tools.git) and add to your `PATH`
-2. Copy `engine/scripts/entos.gclient` to `.gclient` in the root of the repository. This config file has been modified to work with
-the entos fork
-3. Checkout the appropriate branch and sync dependencies with `gclient sync -D`
+2. Copy `engine/scripts/gputex.gclient` to `.gclient` in the root of the repository. This config file has been modified to work with
+the fork
+3. Checkout this branch and sync dependencies with `gclient sync -D`
 4. Add the Engine Tool in `engine/src/flutter/bin` to your path
 5. Run `et build --config=host_debug_unopt`
 
