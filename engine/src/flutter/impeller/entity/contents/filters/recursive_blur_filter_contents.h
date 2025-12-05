@@ -14,7 +14,8 @@
 namespace impeller {
 
 /// Performs a recursive approximation of a Gaussian blur using an
-/// Infinite Impulse Response (IIR) Filter. Also known as a Young-Van Vliet Filter,
+/// Infinite Impulse Response (IIR) Filter. Also known as a Young-Van Vliet
+/// Filter,
 ///
 /// Young, Ian T. and van Vliet, Lucas J (1995)
 /// "Recursive implementation of the Gaussian filter",
@@ -25,11 +26,26 @@ namespace impeller {
 /// is constant regardless of the filter size
 class RecursiveBlurFilterContents final : public FilterContents {
  public:
+  enum class Direction {
+    Causal,
+    AntiCausal,
+  };
+
+  enum class Orientation { Horizontal, Vertical };
+
+  static Scalar CalculateQFromSigma(Scalar sigma);
+  static RecursiveBlurPipeline::FragmentShader::Parameters CalculateParameters(
+      Scalar sigma,
+      Scalar pixel_size);
+  static RecursiveBlurPipeline::FragmentShader::Bounds CalculateDestinationBounds(int index,
+                                      Scalar pixel_size,
+                                      Orientation orientation,
+                                      Direction direction);
   explicit RecursiveBlurFilterContents(Scalar sigma_x,
-                                      Scalar sigma_y,
-                                      Entity::TileMode tile_mode,
-                                      BlurStyle mask_blur_style,
-                                      const Geometry* mask_geometry = nullptr);
+                                       Scalar sigma_y,
+                                       Entity::TileMode tile_mode,
+                                       BlurStyle mask_blur_style,
+                                       const Geometry* mask_geometry = nullptr);
 
   Scalar GetSigmaX() const { return sigma_.x; }
   Scalar GetSigmaY() const { return sigma_.y; }
@@ -58,11 +74,6 @@ class RecursiveBlurFilterContents final : public FilterContents {
                            const Entity& entity,
                            const Rect& source_rect,
                            const ISize& texture_size);
-
-  /// Calculate the scale factor for the downsample pass given a sigma value.
-  ///
-  /// Visible for testing.
-  static Scalar CalculateScale(Scalar sigma);
 
   /// Scales down the sigma value to match Skia's behavior.
   ///

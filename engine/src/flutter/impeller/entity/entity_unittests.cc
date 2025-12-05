@@ -24,8 +24,8 @@
 #include "impeller/entity/contents/filters/color_filter_contents.h"
 #include "impeller/entity/contents/filters/filter_contents.h"
 #include "impeller/entity/contents/filters/gaussian_blur_filter_contents.h"
-#include "impeller/entity/contents/filters/recursive_blur_filter_contents.h"
 #include "impeller/entity/contents/filters/inputs/filter_input.h"
+#include "impeller/entity/contents/filters/recursive_blur_filter_contents.h"
 #include "impeller/entity/contents/linear_gradient_contents.h"
 #include "impeller/entity/contents/radial_gradient_contents.h"
 #include "impeller/entity/contents/runtime_effect_contents.h"
@@ -947,185 +947,185 @@ TEST_P(EntityTest, Filters) {
 }
 
 TEST_P(EntityTest, RecursiveBlurFilter) {
-    auto boston =
-        CreateTextureForFixture("boston.jpg", /*enable_mipmapping=*/true);
-    ASSERT_TRUE(boston);
+  auto boston =
+      CreateTextureForFixture("boston.jpg", /*enable_mipmapping=*/true);
+  ASSERT_TRUE(boston);
 
-    auto callback = [&](ContentContext& context, RenderPass& pass) -> bool {
-        const char* input_type_names[] = {"Texture", "Solid Color"};
-        const char* blur_type_names[] = {"Image blur", "Mask blur"};
-        const char* pass_variation_names[] = {"New"};
-        const char* blur_style_names[] = {"Normal", "Solid", "Outer", "Inner"};
-        const char* tile_mode_names[] = {"Clamp", "Repeat", "Mirror", "Decal"};
-        const FilterContents::BlurStyle blur_styles[] = {
-            FilterContents::BlurStyle::kNormal, FilterContents::BlurStyle::kSolid,
-            FilterContents::BlurStyle::kOuter, FilterContents::BlurStyle::kInner};
-        const Entity::TileMode tile_modes[] = {
-            Entity::TileMode::kClamp, Entity::TileMode::kRepeat,
-            Entity::TileMode::kMirror, Entity::TileMode::kDecal};
+  auto callback = [&](ContentContext& context, RenderPass& pass) -> bool {
+    const char* input_type_names[] = {"Texture", "Solid Color"};
+    const char* blur_type_names[] = {"Image blur", "Mask blur"};
+    const char* pass_variation_names[] = {"New"};
+    const char* blur_style_names[] = {"Normal", "Solid", "Outer", "Inner"};
+    const char* tile_mode_names[] = {"Clamp", "Repeat", "Mirror", "Decal"};
+    const FilterContents::BlurStyle blur_styles[] = {
+        FilterContents::BlurStyle::kNormal, FilterContents::BlurStyle::kSolid,
+        FilterContents::BlurStyle::kOuter, FilterContents::BlurStyle::kInner};
+    const Entity::TileMode tile_modes[] = {
+        Entity::TileMode::kClamp, Entity::TileMode::kRepeat,
+        Entity::TileMode::kMirror, Entity::TileMode::kDecal};
 
-        // UI state.
-        static int selected_input_type = 0;
-        static Color input_color = Color::Black();
-        static int selected_blur_type = 0;
-        static int selected_pass_variation = 0;
-        static bool combined_sigma = false;
-        static float blur_amount_coarse[2] = {0, 0};
-        static float blur_amount_fine[2] = {10, 10};
-        static int selected_blur_style = 0;
-        static int selected_tile_mode = 3;
-        static Color cover_color(1, 0, 0, 0.2);
-        static Color bounds_color(0, 1, 0, 0.1);
-        static float offset[2] = {500, 400};
-        static float rotation = 0;
-        static float scale[2] = {0.65, 0.65};
-        static float skew[2] = {0, 0};
-        static float path_rect[4] = {0, 0,
-                                     static_cast<float>(boston->GetSize().width),
-                                     static_cast<float>(boston->GetSize().height)};
+    // UI state.
+    static int selected_input_type = 0;
+    static Color input_color = Color::Black();
+    static int selected_blur_type = 0;
+    static int selected_pass_variation = 0;
+    static bool combined_sigma = true;
+    static float blur_amount_coarse[2] = {0, 0};
+    static float blur_amount_fine[2] = {10, 10};
+    static int selected_blur_style = 0;
+    static int selected_tile_mode = 3;
+    static Color cover_color(1, 0, 0, 0.2);
+    static Color bounds_color(0, 1, 0, 0.1);
+    static float offset[2] = {500, 400};
+    static float rotation = 0;
+    static float scale[2] = {0.65, 0.65};
+    static float skew[2] = {0, 0};
+    static float path_rect[4] = {0, 0,
+                                 static_cast<float>(boston->GetSize().width),
+                                 static_cast<float>(boston->GetSize().height)};
 
-        ImGui::Begin("Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-        {
-            ImGui::Combo("Input type", &selected_input_type, input_type_names,
-                         sizeof(input_type_names) / sizeof(char*));
-            if (selected_input_type == 0) {
-                ImGui::SliderFloat("Input opacity", &input_color.alpha, 0, 1);
-            } else {
-                ImGui::ColorEdit4("Input color",
-                                  reinterpret_cast<float*>(&input_color));
-            }
-            ImGui::Combo("Blur type", &selected_blur_type, blur_type_names,
-                         sizeof(blur_type_names) / sizeof(char*));
-            if (selected_blur_type == 0) {
-                ImGui::Combo("Pass variation", &selected_pass_variation,
-                             pass_variation_names,
-                             sizeof(pass_variation_names) / sizeof(char*));
-            }
-            ImGui::Checkbox("Combined sigma", &combined_sigma);
-            if (combined_sigma) {
-                ImGui::SliderFloat("Sigma (coarse)", blur_amount_coarse, 0, 1000);
-                ImGui::SliderFloat("Sigma (fine)", blur_amount_fine, 0, 10);
-                blur_amount_coarse[1] = blur_amount_coarse[0];
-                blur_amount_fine[1] = blur_amount_fine[0];
-            } else {
-                ImGui::SliderFloat2("Sigma (coarse)", blur_amount_coarse, 0, 1000);
-                ImGui::SliderFloat2("Sigma (fine)", blur_amount_fine, 0, 10);
-            }
-            ImGui::Combo("Blur style", &selected_blur_style, blur_style_names,
-                         sizeof(blur_style_names) / sizeof(char*));
-            ImGui::Combo("Tile mode", &selected_tile_mode, tile_mode_names,
-                         sizeof(tile_mode_names) / sizeof(char*));
-            ImGui::ColorEdit4("Cover color", reinterpret_cast<float*>(&cover_color));
-            ImGui::ColorEdit4("Bounds color ",
-                              reinterpret_cast<float*>(&bounds_color));
-            ImGui::SliderFloat2("Translation", offset, 0,
-                                pass.GetRenderTargetSize().width);
-            ImGui::SliderFloat("Rotation", &rotation, 0, kPi * 2);
-            ImGui::SliderFloat2("Scale", scale, 0, 3);
-            ImGui::SliderFloat2("Skew", skew, -3, 3);
-            ImGui::SliderFloat4("Path XYWH", path_rect, -1000, 1000);
-        }
-        ImGui::End();
+    ImGui::Begin("Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    {
+      ImGui::Combo("Input type", &selected_input_type, input_type_names,
+                   sizeof(input_type_names) / sizeof(char*));
+      if (selected_input_type == 0) {
+        ImGui::SliderFloat("Input opacity", &input_color.alpha, 0, 1);
+      } else {
+        ImGui::ColorEdit4("Input color",
+                          reinterpret_cast<float*>(&input_color));
+      }
+      ImGui::Combo("Blur type", &selected_blur_type, blur_type_names,
+                   sizeof(blur_type_names) / sizeof(char*));
+      if (selected_blur_type == 0) {
+        ImGui::Combo("Pass variation", &selected_pass_variation,
+                     pass_variation_names,
+                     sizeof(pass_variation_names) / sizeof(char*));
+      }
+      ImGui::Checkbox("Combined sigma", &combined_sigma);
+      if (combined_sigma) {
+        ImGui::SliderFloat("Sigma (coarse)", blur_amount_coarse, 0, 1000);
+        ImGui::SliderFloat("Sigma (fine)", blur_amount_fine, 0, 10);
+        blur_amount_coarse[1] = blur_amount_coarse[0];
+        blur_amount_fine[1] = blur_amount_fine[0];
+      } else {
+        ImGui::SliderFloat2("Sigma (coarse)", blur_amount_coarse, 0, 1000);
+        ImGui::SliderFloat2("Sigma (fine)", blur_amount_fine, 0, 10);
+      }
+      ImGui::Combo("Blur style", &selected_blur_style, blur_style_names,
+                   sizeof(blur_style_names) / sizeof(char*));
+      ImGui::Combo("Tile mode", &selected_tile_mode, tile_mode_names,
+                   sizeof(tile_mode_names) / sizeof(char*));
+      ImGui::ColorEdit4("Cover color", reinterpret_cast<float*>(&cover_color));
+      ImGui::ColorEdit4("Bounds color ",
+                        reinterpret_cast<float*>(&bounds_color));
+      ImGui::SliderFloat2("Translation", offset, 0,
+                          pass.GetRenderTargetSize().width);
+      ImGui::SliderFloat("Rotation", &rotation, 0, kPi * 2);
+      ImGui::SliderFloat2("Scale", scale, 0, 3);
+      ImGui::SliderFloat2("Skew", skew, -3, 3);
+      ImGui::SliderFloat4("Path XYWH", path_rect, -1000, 1000);
+    }
+    ImGui::End();
 
-        auto blur_sigma_x = Sigma{blur_amount_coarse[0] + blur_amount_fine[0]};
-        auto blur_sigma_y = Sigma{blur_amount_coarse[1] + blur_amount_fine[1]};
+    auto blur_sigma_x = Sigma{blur_amount_coarse[0] + blur_amount_fine[0]};
+    auto blur_sigma_y = Sigma{blur_amount_coarse[1] + blur_amount_fine[1]};
 
-        std::shared_ptr<Contents> input;
-        Size input_size;
+    std::shared_ptr<Contents> input;
+    Size input_size;
 
-        auto input_rect =
-            Rect::MakeXYWH(path_rect[0], path_rect[1], path_rect[2], path_rect[3]);
+    auto input_rect =
+        Rect::MakeXYWH(path_rect[0], path_rect[1], path_rect[2], path_rect[3]);
 
-        std::unique_ptr<Geometry> solid_color_input;
-        if (selected_input_type == 0) {
-            auto texture = std::make_shared<TextureContents>();
-            texture->SetSourceRect(Rect::MakeSize(boston->GetSize()));
-            texture->SetDestinationRect(input_rect);
-            texture->SetTexture(boston);
-            texture->SetOpacity(input_color.alpha);
+    std::unique_ptr<Geometry> solid_color_input;
+    if (selected_input_type == 0) {
+      auto texture = std::make_shared<TextureContents>();
+      texture->SetSourceRect(Rect::MakeSize(boston->GetSize()));
+      texture->SetDestinationRect(input_rect);
+      texture->SetTexture(boston);
+      texture->SetOpacity(input_color.alpha);
 
-            input = texture;
-            input_size = input_rect.GetSize();
-        } else {
-            auto fill = std::make_shared<SolidColorContents>();
-            fill->SetColor(input_color);
-            solid_color_input =
-                Geometry::MakeFillPath(flutter::DlPath::MakeRect(input_rect));
+      input = texture;
+      input_size = input_rect.GetSize();
+    } else {
+      auto fill = std::make_shared<SolidColorContents>();
+      fill->SetColor(input_color);
+      solid_color_input =
+          Geometry::MakeFillPath(flutter::DlPath::MakeRect(input_rect));
 
-            fill->SetGeometry(solid_color_input.get());
+      fill->SetGeometry(solid_color_input.get());
 
-            input = fill;
-            input_size = input_rect.GetSize();
-        }
+      input = fill;
+      input_size = input_rect.GetSize();
+    }
 
-        std::shared_ptr<FilterContents> blur;
-        switch (selected_pass_variation) {
-            case 0:
-                blur = std::make_shared<RecursiveBlurFilterContents>(
-                    blur_sigma_x.sigma, blur_sigma_y.sigma,
-                    tile_modes[selected_tile_mode], blur_styles[selected_blur_style],
-                    /*geometry=*/nullptr);
-                blur->SetInputs({FilterInput::Make(input)});
-                break;
-            case 1:
-                blur = FilterContents::MakeGaussianBlur(
-                    FilterInput::Make(input), blur_sigma_x, blur_sigma_y,
-                    tile_modes[selected_tile_mode], blur_styles[selected_blur_style]);
-                break;
-        };
-        FML_CHECK(blur);
-
-        auto mask_blur = FilterContents::MakeBorderMaskBlur(
+    std::shared_ptr<FilterContents> blur;
+    switch (selected_pass_variation) {
+      case 0:
+        blur = std::make_shared<RecursiveBlurFilterContents>(
+            blur_sigma_x.sigma, blur_sigma_y.sigma,
+            tile_modes[selected_tile_mode], blur_styles[selected_blur_style],
+            /*geometry=*/nullptr);
+        blur->SetInputs({FilterInput::Make(input)});
+        break;
+      case 1:
+        blur = FilterContents::MakeGaussianBlur(
             FilterInput::Make(input), blur_sigma_x, blur_sigma_y,
-            blur_styles[selected_blur_style]);
-
-        auto ctm = Matrix::MakeScale(GetContentScale()) *
-                   Matrix::MakeTranslation(Vector3(offset[0], offset[1])) *
-                   Matrix::MakeRotationZ(Radians(rotation)) *
-                   Matrix::MakeScale(Vector2(scale[0], scale[1])) *
-                   Matrix::MakeSkew(skew[0], skew[1]) *
-                   Matrix::MakeTranslation(-Point(input_size) / 2);
-
-        auto target_contents = selected_blur_type == 0 ? blur : mask_blur;
-
-        Entity entity;
-        entity.SetContents(target_contents);
-        entity.SetTransform(ctm);
-
-        entity.Render(context, pass);
-
-        // Renders a red "cover" rectangle that shows the original position of the
-        // unfiltered input.
-        Entity cover_entity;
-        std::unique_ptr<Geometry> geom =
-            Geometry::MakeFillPath(flutter::DlPath::MakeRect(input_rect));
-        auto contents = std::make_shared<SolidColorContents>();
-        contents->SetColor(cover_color);
-        contents->SetGeometry(geom.get());
-        cover_entity.SetContents(std::move(contents));
-        cover_entity.SetTransform(ctm);
-        cover_entity.Render(context, pass);
-
-        // Renders a green bounding rect of the target filter.
-        Entity bounds_entity;
-        std::optional<Rect> target_contents_coverage =
-            target_contents->GetCoverage(entity);
-        if (target_contents_coverage.has_value()) {
-            std::unique_ptr<Geometry> geom =
-                Geometry::MakeFillPath(flutter::DlPath::MakeRect(
-                    target_contents->GetCoverage(entity).value()));
-            auto contents = std::make_shared<SolidColorContents>();
-            contents->SetColor(bounds_color);
-            contents->SetGeometry(geom.get());
-
-            bounds_entity.SetContents(contents);
-            bounds_entity.SetTransform(Matrix());
-            bounds_entity.Render(context, pass);
-        }
-
-        return true;
+            tile_modes[selected_tile_mode], blur_styles[selected_blur_style]);
+        break;
     };
-    ASSERT_TRUE(OpenPlaygroundHere(callback));
+    FML_CHECK(blur);
+
+    auto mask_blur = FilterContents::MakeBorderMaskBlur(
+        FilterInput::Make(input), blur_sigma_x, blur_sigma_y,
+        blur_styles[selected_blur_style]);
+
+    auto ctm = Matrix::MakeScale(GetContentScale()) *
+               Matrix::MakeTranslation(Vector3(offset[0], offset[1])) *
+               Matrix::MakeRotationZ(Radians(rotation)) *
+               Matrix::MakeScale(Vector2(scale[0], scale[1])) *
+               Matrix::MakeSkew(skew[0], skew[1]) *
+               Matrix::MakeTranslation(-Point(input_size) / 2);
+
+    auto target_contents = selected_blur_type == 0 ? blur : mask_blur;
+
+    Entity entity;
+    entity.SetContents(target_contents);
+    entity.SetTransform(ctm);
+
+    entity.Render(context, pass);
+
+    // Renders a red "cover" rectangle that shows the original position of the
+    // unfiltered input.
+    Entity cover_entity;
+    std::unique_ptr<Geometry> geom =
+        Geometry::MakeFillPath(flutter::DlPath::MakeRect(input_rect));
+    auto contents = std::make_shared<SolidColorContents>();
+    contents->SetColor(cover_color);
+    contents->SetGeometry(geom.get());
+    cover_entity.SetContents(std::move(contents));
+    cover_entity.SetTransform(ctm);
+    cover_entity.Render(context, pass);
+
+    // Renders a green bounding rect of the target filter.
+    Entity bounds_entity;
+    std::optional<Rect> target_contents_coverage =
+        target_contents->GetCoverage(entity);
+    if (target_contents_coverage.has_value()) {
+      std::unique_ptr<Geometry> geom =
+          Geometry::MakeFillPath(flutter::DlPath::MakeRect(
+              target_contents->GetCoverage(entity).value()));
+      auto contents = std::make_shared<SolidColorContents>();
+      contents->SetColor(bounds_color);
+      contents->SetGeometry(geom.get());
+
+      bounds_entity.SetContents(contents);
+      bounds_entity.SetTransform(Matrix());
+      bounds_entity.Render(context, pass);
+    }
+
+    return true;
+  };
+  ASSERT_TRUE(OpenPlaygroundHere(callback));
 }
 
 TEST_P(EntityTest, GaussianBlurFilter) {

@@ -209,6 +209,7 @@ class ContentContext {
   PipelineRef GetRadialGradientFillPipeline(ContentContextOptions opts) const;
   PipelineRef GetRadialGradientSSBOFillPipeline(ContentContextOptions opts) const;
   PipelineRef GetRadialGradientUniformFillPipeline(ContentContextOptions opts) const;
+  PipelineRef GetRecursiveBlurPipeline(ContentContextOptions opts) const;
   PipelineRef GetRRectBlurPipeline(ContentContextOptions opts) const;
   PipelineRef GetRSuperellipseBlurPipeline(ContentContextOptions opts) const;
   PipelineRef GetScreenBlendPipeline(ContentContextOptions opts) const;

@@ -287,6 +287,7 @@ struct ContentContext::Pipelines {
   Variants<RadialGradientFillPipeline> radial_gradient_fill;
   Variants<RadialGradientSSBOFillPipeline> radial_gradient_ssbo_fill;
   Variants<RadialGradientUniformFillPipeline> radial_gradient_uniform_fill;
+  Variants<RecursiveBlurPipeline> recursive_blur;
   Variants<RRectBlurPipeline> rrect_blur;
   Variants<RSuperellipseBlurPipeline> rsuperellipse_blur;
   Variants<SolidFillPipeline> solid_fill;
@@ -707,6 +708,8 @@ ContentContext::ContentContext(
     pipelines_->tiled_texture.CreateDefault(*context_, options,
                                             {supports_decal});
     pipelines_->gaussian_blur.CreateDefault(
+        *context_, options_no_msaa_no_depth_stencil, {supports_decal});
+    pipelines_->recursive_blur.CreateDefault(
         *context_, options_no_msaa_no_depth_stencil, {supports_decal});
     pipelines_->border_mask_blur.CreateDefault(*context_,
                                                options_trianglestrip);
@@ -1149,6 +1152,11 @@ PipelineRef ContentContext::GetTiledTexturePipeline(
 PipelineRef ContentContext::GetGaussianBlurPipeline(
     ContentContextOptions opts) const {
   return GetPipeline(this, pipelines_->gaussian_blur, opts);
+}
+
+PipelineRef ContentContext::GetRecursiveBlurPipeline(
+    ContentContextOptions opts) const {
+  return GetPipeline(this, pipelines_->recursive_blur, opts);
 }
 
 PipelineRef ContentContext::GetBorderMaskBlurPipeline(

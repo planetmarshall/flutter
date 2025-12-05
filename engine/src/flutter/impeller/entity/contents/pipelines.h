@@ -44,6 +44,7 @@
 #include "impeller/entity/radial_gradient_fill.frag.h"
 #include "impeller/entity/radial_gradient_ssbo_fill.frag.h"
 #include "impeller/entity/radial_gradient_uniform_fill.frag.h"
+#include "impeller/entity/recursive_blur.frag.h"
 #include "impeller/entity/rrect_blur.frag.h"
 #include "impeller/entity/rrect_like_blur.vert.h"
 #include "impeller/entity/rsuperellipse_blur.frag.h"
@@ -141,6 +142,7 @@ using PorterDuffBlendPipeline = RenderPipelineHandle<PorterDuffBlendVertexShader
 using RadialGradientFillPipeline = GradientPipelineHandle<RadialGradientFillFragmentShader>;
 using RadialGradientSSBOFillPipeline = GradientPipelineHandle<RadialGradientSsboFillFragmentShader>;
 using RadialGradientUniformFillPipeline = GradientPipelineHandle<RadialGradientUniformFillFragmentShader>;
+using RecursiveBlurPipeline = RenderPipelineHandle<FilterPositionUvVertexShader, RecursiveBlurFragmentShader>;
 using RRectBlurPipeline = RenderPipelineHandle<RrectLikeBlurVertexShader, RrectBlurFragmentShader>;
 using RSuperellipseBlurPipeline = RenderPipelineHandle<RrectLikeBlurVertexShader, RsuperellipseBlurFragmentShader>;
 using SolidFillPipeline = RenderPipelineHandle<SolidFillVertexShader, SolidFillFragmentShader>;
