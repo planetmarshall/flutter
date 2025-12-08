@@ -98,18 +98,34 @@ TEST(RecursiveBlurFilterContentsTest, CalculateBlurOffsets) {
   ASSERT_NEAR(expected_params.data[2].x, params.data[2].x, epsilon);
 }
 
-TEST(RecursiveBlurFilterContentsTest, BoundsForHorizontalCausalPassAreExclusive) {
-            const auto region1 = RecursiveBlurFilterContents::CalculateDestinationBounds(
-              0,
-              1,
-              RecursiveBlurFilterContents::Orientation::Horizontal,
-              RecursiveBlurFilterContents::Direction::Causal
-              );
+TEST(RecursiveBlurFilterContentsTest, CalculateBoundsForUpdateRegion) {
+  const auto [region1, offset] =
+      RecursiveBlurFilterContents::CalculateUpdateRegion(
+          0, 1, RecursiveBlurFilterContents::Orientation::Horizontal,
+          RecursiveBlurFilterContents::Direction::Causal);
 
-  ASSERT_LT(-4, region1.x0);
-  ASSERT_GT(-3, region1.x0);
-  ASSERT_LT(0, region1.x1);
-  ASSERT_GT(1, region1.x1);
+  ASSERT_POINT_NEAR(Point(0, 0), region1[0]);
+  ASSERT_POINT_NEAR(Point(1, 0), region1[1]);
+  ASSERT_POINT_NEAR(Point(0, 1), region1[2]);
+  ASSERT_POINT_NEAR(Point(1, 1), region1[3]);
+}
+
+TEST(RecursiveBlurFilterContentsTest,
+     CalculateUpdateOffsetForCausalHorizontalPass) {
+  const auto [region1, offset] =
+      RecursiveBlurFilterContents::CalculateUpdateRegion(
+          0, 1, RecursiveBlurFilterContents::Orientation::Horizontal,
+          RecursiveBlurFilterContents::Direction::Causal);
+  ASSERT_GT(0, offset);
+  ASSERT_LT(-1, offset);
+
+  const auto [region2, offset2] =
+      RecursiveBlurFilterContents::CalculateUpdateRegion(
+          100, 0.1, RecursiveBlurFilterContents::Orientation::Horizontal,
+          RecursiveBlurFilterContents::Direction::Causal);
+  // if we index x = 10, then that should satisfy x > offset
+  ASSERT_GT(10, offset2);
+  ASSERT_LT(9.9, offset2);
 }
 }  // namespace testing
 }  // namespace impeller

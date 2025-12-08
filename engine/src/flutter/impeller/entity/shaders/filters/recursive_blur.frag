@@ -17,11 +17,11 @@ uniform Parameters {
 }
 parameters;
 
-uniform Bounds {
-    float x0;
-    float x1;
+// the exclusive bound of the 1 pixel wide strip being updated
+uniform Offset {
+  float x;
 }
-bounds;
+offset;
 
 f16vec4 Sample(f16sampler2D tex, vec2 coords) {
   if (supports_decal == 1.0) {
@@ -35,21 +35,20 @@ in vec2 v_texture_coords;
 out f16vec4 frag_color;
 
 void main() {
-
+  // Each shader pass updates a 1-pixel wide strip of the image.
+  // the rest of the image is just passed through from the underlying
+  // texture
   // horizontal causal pass
-  if (v_texture_coords.x < bounds.x0 || v_texture_coords.x >= bounds.x1) {
+  if (v_texture_coords.x > offset.x) {
+    frag_color =
+        float16_t(parameters.B) * Sample(texture_sampler, v_texture_coords) +
+        float16_t(parameters.data[0].z) *
+            Sample(texture_sampler, v_texture_coords + parameters.data[0].xy) +
+        float16_t(parameters.data[1].z) *
+            Sample(texture_sampler, v_texture_coords + parameters.data[1].xy) +
+        float16_t(parameters.data[2].z) *
+            Sample(texture_sampler, v_texture_coords + parameters.data[2].xy);
+  } else {
     frag_color = Sample(texture_sampler, v_texture_coords);
-  }
-  else {
-  frag_color =
-      float16_t(parameters.B) * Sample(texture_sampler, v_texture_coords) +
-      float16_t(parameters.data[0].z) *
-          Sample(texture_sampler, v_texture_coords + parameters.data[0].xy) +
-      float16_t(parameters.data[1].z) *
-          Sample(texture_sampler, v_texture_coords + parameters.data[1].xy) +
-      float16_t(parameters.data[2].z) *
-          Sample(texture_sampler, v_texture_coords + parameters.data[2].xy);
-
-  frag_color = vec4(1,0,0,1);
   }
 }

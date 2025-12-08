@@ -4,6 +4,7 @@
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-variable"
 
 #include "impeller/entity/contents/filters/recursive_blur_filter_contents.h"
 #include "impeller/entity/contents/filters/gaussian_blur_filter_contents.h"
@@ -310,8 +311,9 @@ fml::StatusOr<RenderTarget> MakeBlurSubpass(
     Scalar pixel_size,
     Scalar sigma,
     int step,
-    std::optional<RenderTarget> destination_target
-    ) {
+    RecursiveBlurFilterContents::Direction direction,
+    RecursiveBlurFilterContents::Orientation orientation,
+    std::optional<RenderTarget> destination_target) {
   using VS = RecursiveBlurVertexShader;
 
   // TODO(gaaclarke): This blurs the whole image, but because we know the clip
@@ -330,14 +332,14 @@ fml::StatusOr<RenderTarget> MakeBlurSubpass(
         options.primitive_type = PrimitiveType::kTriangleStrip;
         pass.SetPipeline(renderer.GetRecursiveBlurPipeline(options));
 
-        const auto quad = std::array{
-            Point(0,0), Point(1,0), Point(0, 1), Point(1,1)
-        };
+        const auto [region, offset] =
+            RecursiveBlurFilterContents::CalculateUpdateRegion(
+                step, pixel_size, orientation, direction);
         std::array vertices = {
-            VS::PerVertexData{quad[0], quad[0]},
-            VS::PerVertexData{quad[1], quad[1]},
-            VS::PerVertexData{quad[2], quad[2]},
-            VS::PerVertexData{quad[3], quad[3]},
+            VS::PerVertexData{region[0], region[0]},
+            VS::PerVertexData{region[1], region[1]},
+            VS::PerVertexData{region[2], region[2]},
+            VS::PerVertexData{region[3], region[3]},
         };
         pass.SetVertexBuffer(CreateVertexBuffer(vertices, data_host_buffer));
 
@@ -354,10 +356,9 @@ fml::StatusOr<RenderTarget> MakeBlurSubpass(
             pass, data_host_buffer.EmplaceUniform(
                       RecursiveBlurFilterContents::CalculateParameters(
                           sigma, pixel_size)));
-        RecursiveBlurFragmentShader::BindBounds(
-            pass, data_host_buffer.EmplaceUniform(RecursiveBlurFilterContents::CalculateDestinationBounds(
-                step, pixel_size, RecursiveBlurFilterContents::Orientation::Horizontal, RecursiveBlurFilterContents::Direction::Causal))
-        );
+        RecursiveBlurFragmentShader::BindOffset(
+            pass, data_host_buffer.EmplaceUniform(
+                      RecursiveBlurFragmentShader::Offset{.x = offset}));
         return pass.Draw().ok();
       };
   if (destination_target.has_value()) {
@@ -594,25 +595,24 @@ std::optional<Entity> RecursiveBlurFilterContents::RenderFilter(
   if (!halo_pass.ok()) {
     return std::nullopt;
   }
-    const auto size = halo_pass.value().GetRenderTargetTexture()->GetSize();
-    Vector2 pixel_size = 1.0 / Vector2(size);
-    // horizontal causal pass
-    auto dest_pass = std::optional<RenderTarget>(std::nullopt);
-    auto src_pass = std::optional<RenderTarget>(halo_pass.value());
-    for (int i = 0; i < size.width; ++i) {
-        auto result = MakeBlurSubpass(
-            renderer, command_buffer, src_pass->GetRenderTargetTexture(),
-            input_snapshot->sampler_descriptor, pixel_size.x,
-            blur_info.scaled_sigma.x,
-            i,
-            dest_pass);
-        if (!result.ok()) {
-            return std::nullopt;
-        }
-        dest_pass = result.value();
-        std::swap(src_pass, dest_pass);
+  const auto size = halo_pass.value().GetRenderTargetTexture()->GetSize();
+  Vector2 pixel_size = 1.0 / Vector2(size);
+  auto dest_pass = std::optional<RenderTarget>(std::nullopt);
+  auto src_pass = std::optional<RenderTarget>(halo_pass.value());
+  for (int i = 0; i < size.width; ++i) {
+    auto result = MakeBlurSubpass(
+        renderer, command_buffer, src_pass->GetRenderTargetTexture(),
+        input_snapshot->sampler_descriptor, pixel_size.x,
+        blur_info.scaled_sigma.x, i, Direction::Causal, Orientation::Horizontal,
+        dest_pass);
+
+    if (!result.ok()) {
+      return std::nullopt;
     }
-    dest_pass = src_pass.value();
+    dest_pass = result.value();
+    std::swap(src_pass, dest_pass);
+  }
+  dest_pass = src_pass.value();
 
   if (!renderer.GetContext()->EnqueueCommandBuffer(std::move(command_buffer))) {
     return std::nullopt;
@@ -625,16 +625,15 @@ std::optional<Entity> RecursiveBlurFilterContents::RenderFilter(
       MinMagFilter::kLinear, SamplerAddressMode::kClampToEdge);
 
   Entity blur_output_entity = Entity::FromSnapshot(
-      Snapshot{
-          .texture = dest_pass.value().GetRenderTargetTexture(),
-          .transform =
-              entity.GetTransform() *                                   //
-              Matrix::MakeScale(1.f / blur_info.source_space_scalar) *  //
-              Matrix::MakeTranslation(-1 * blur_info.source_space_offset) *
-              halo_pass_args.transform,
-          .sampler_descriptor = sampler_desc,
-          .opacity = input_snapshot->opacity,
-          .needs_rasterization_for_runtime_effects = true},
+      Snapshot{.texture = dest_pass.value().GetRenderTargetTexture(),
+               .transform =
+                   entity.GetTransform() *                                   //
+                   Matrix::MakeScale(1.f / blur_info.source_space_scalar) *  //
+                   Matrix::MakeTranslation(-1 * blur_info.source_space_offset) *
+                   halo_pass_args.transform,
+               .sampler_descriptor = sampler_desc,
+               .opacity = input_snapshot->opacity,
+               .needs_rasterization_for_runtime_effects = true},
       entity.GetBlendMode());
 
   return ApplyBlurStyle(mask_blur_style_, entity, inputs[0],
@@ -702,16 +701,14 @@ RecursiveBlurFilterContents::CalculateParameters(Scalar sigma,
           }};
 }
 
-RecursiveBlurFragmentShader::Bounds
-    RecursiveBlurFilterContents::CalculateDestinationBounds(
+std::pair<Quad, Scalar> RecursiveBlurFilterContents::CalculateUpdateRegion(
     int index,
     Scalar pixel_size,
     Orientation orientation,
     Direction direction) {
-    auto epsilon = pixel_size * 0.01f;
-    return {
-        .x0 = pixel_size * static_cast<Scalar>(index - 3) - epsilon,
-        .x1 = pixel_size * static_cast<Scalar>(index) + epsilon,
-    };
+  const auto x_lim = pixel_size * static_cast<Scalar>(index + 1);
+  const auto epsilon = pixel_size * 1.0e-3F;
+  return {{Point(0, 0), Point(x_lim, 0), Point(0, 1), Point(x_lim, 1)},
+          static_cast<Scalar>(index) * pixel_size - epsilon};
 }
 }  // namespace impeller

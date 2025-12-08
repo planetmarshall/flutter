@@ -37,10 +37,11 @@ class RecursiveBlurFilterContents final : public FilterContents {
   static RecursiveBlurPipeline::FragmentShader::Parameters CalculateParameters(
       Scalar sigma,
       Scalar pixel_size);
-  static RecursiveBlurPipeline::FragmentShader::Bounds CalculateDestinationBounds(int index,
-                                      Scalar pixel_size,
-                                      Orientation orientation,
-                                      Direction direction);
+  static std::pair<Quad, Scalar> CalculateUpdateRegion(int index,
+                                                       Scalar pixel_size,
+                                                       Orientation orientation,
+                                                       Direction direction);
+
   explicit RecursiveBlurFilterContents(Scalar sigma_x,
                                        Scalar sigma_y,
                                        Entity::TileMode tile_mode,
