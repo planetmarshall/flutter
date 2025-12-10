@@ -119,6 +119,8 @@ template("impeller_shaders") {
         } else {
           shaders = invoker.shaders
         }
+        # compute shaders not supported in GLES < 3.1
+        filter_exclude(shaders, ["*.comp"])
         analyze = analyze
       }
     }
@@ -128,7 +130,12 @@ template("impeller_shaders") {
     impeller_shaders_gles(gles3_shaders) {
       name = invoker.name
       require_framebuffer_fetch = require_framebuffer_fetch
-      gles_language_version = 300
+
+      if (defined(invoker.gles_language_version)) {
+        gles_language_version = invoker.gles_language_version
+      } else {
+        gles_language_version = 300
+      }
       is_300 = true
       analyze = false
       if (defined(invoker.gles_exclusions)) {
