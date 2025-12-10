@@ -124,8 +124,9 @@ ShaderLibraryMappingsForPlayground() {
       std::make_shared<fml::NonOwnedMapping>(
           impeller_imgui_shaders_gles_data, impeller_imgui_shaders_gles_length),
       std::make_shared<fml::NonOwnedMapping>(
-          impeller_compute_shaders_gles3_data, impeller_compute_shaders_gles3_length),
-};
+          impeller_compute_shaders_gles3_data,
+          impeller_compute_shaders_gles3_length),
+  };
 }
 
 // |PlaygroundImpl|

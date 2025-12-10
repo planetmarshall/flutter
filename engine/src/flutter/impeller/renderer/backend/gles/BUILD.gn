@@ -55,6 +55,8 @@ impeller_component("gles") {
     "capabilities_gles.h",
     "command_buffer_gles.cc",
     "command_buffer_gles.h",
+    "compute_pipeline_gles.cc",
+    "compute_pipeline_gles.h",
     "context_gles.cc",
     "context_gles.h",
     "description_gles.cc",

@@ -37,5 +37,6 @@ declare_args() {
       impeller_enable_metal || impeller_enable_opengles ||
       impeller_enable_vulkan
 
-  impeller_enable_compute = impeller_enable_vulkan || impeller_enable_metal
+  impeller_enable_compute =
+      impeller_enable_vulkan || impeller_enable_metal || impeller_enable_gles
 }

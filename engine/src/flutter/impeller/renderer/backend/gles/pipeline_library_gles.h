@@ -18,6 +18,7 @@
 namespace impeller {
 
 class ContextGLES;
+class ComputePipelineGLES;
 class PipelineGLES;
 
 class PipelineLibraryGLES final
@@ -89,6 +90,7 @@ class PipelineLibraryGLES final
 
   std::shared_ptr<ReactorGLES> reactor_;
   PipelineMap pipelines_;
+  ComputePipelineMap compute_pipelines_;
   Mutex programs_mutex_;
   ProgramMap programs_ IPLR_GUARDED_BY(programs_mutex_);
 
@@ -121,6 +123,12 @@ class PipelineLibraryGLES final
       const PipelineDescriptor& desc,
       const std::shared_ptr<const ShaderFunction>& vert_shader,
       const std::shared_ptr<const ShaderFunction>& frag_shader,
+      bool threadsafe);
+
+  static std::shared_ptr<ComputePipelineGLES> CreateComputePipeline(
+      const std::weak_ptr<PipelineLibrary>& weak_library,
+      const ComputePipelineDescriptor& desc,
+      const std::shared_ptr<const ShaderFunction>& comp_shader,
       bool threadsafe);
 
   std::shared_ptr<UniqueHandleGLES> GetProgramForKey(const ProgramKey& key);

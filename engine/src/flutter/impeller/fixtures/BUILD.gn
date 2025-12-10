@@ -74,12 +74,8 @@ impeller_shaders("shader_fixtures") {
   }
 
   if (impeller_enable_opengles) {
-    gles_exclusions = [
-      "sample.comp",
-      "stage1.comp",
-      "stage2.comp",
-      "half.frag",
-    ]
+    gles_language_version = 310
+    gles_exclusions = [ "half.frag" ]
   }
   entry_point_prefix = ""
 }

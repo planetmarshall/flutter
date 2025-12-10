@@ -10,6 +10,7 @@
 #include "flutter/fml/trace_event.h"
 #include "fml/closure.h"
 #include "impeller/base/promise.h"
+#include "impeller/renderer/backend/gles/compute_pipeline_gles.h"
 #include "impeller/renderer/backend/gles/pipeline_gles.h"
 #include "impeller/renderer/backend/gles/shader_function_gles.h"
 #include "impeller/renderer/pipeline_descriptor.h"
@@ -176,6 +177,79 @@ static bool LinkProgram(
   return true;
 }
 
+static bool LinkComputeProgram(
+    const ReactorGLES& reactor,
+    const std::shared_ptr<ComputePipelineGLES>& pipeline,
+    const std::shared_ptr<const ShaderFunction>& compute_function) {
+  TRACE_EVENT0("impeller", __FUNCTION__);
+
+  const auto& descriptor = pipeline->GetDescriptor();
+
+  auto mapping = ShaderFunctionGLES::Cast(*compute_function).GetSourceMapping();
+
+  const auto& gl = reactor.GetProcTable();
+
+  // bit hacky
+  constexpr auto gl_compute_shader = 0x91B9;
+  auto shader = gl.CreateShader(gl_compute_shader);
+
+  if (shader == 0) {
+    VALIDATION_LOG << "Could not create compute shader handle.";
+    return false;
+  }
+
+  gl.SetDebugLabel(DebugResourceType::kShader, shader,
+                   std::format("{} Compute Shader", descriptor.GetLabel()));
+
+  fml::ScopedCleanupClosure delete_shader(
+      [&gl, shader]() { gl.DeleteShader(shader); });
+
+  gl.CompileShader(shader);
+
+  GLint status = GL_FALSE;
+
+  gl.GetShaderiv(shader, GL_COMPILE_STATUS, &status);
+
+  if (status != GL_TRUE) {
+    LogShaderCompilationFailure(gl, shader, descriptor.GetLabel(), *mapping,
+                                ShaderStage::kCompute);
+    return false;
+  }
+
+  if (status != GL_TRUE) {
+    LogShaderCompilationFailure(gl, shader, descriptor.GetLabel(), *mapping,
+                                ShaderStage::kFragment);
+    return false;
+  }
+
+  auto program = reactor.GetGLHandle(pipeline->GetProgramHandle());
+  if (!program.has_value()) {
+    VALIDATION_LOG << "Could not get program handle from reactor.";
+    return false;
+  }
+
+  gl.AttachShader(*program, shader);
+
+  fml::ScopedCleanupClosure detach_vert_shader(
+      [&gl, program = *program, shader]() {
+        gl.DetachShader(program, shader);
+      });
+
+  gl.LinkProgram(*program);
+
+  GLint link_status = GL_FALSE;
+  gl.GetProgramiv(*program, GL_LINK_STATUS, &link_status);
+
+  if (link_status != GL_TRUE) {
+    VALIDATION_LOG << "Could not link shader program: "
+                   << gl.GetProgramInfoLogString(*program)
+                   << "\nCompute Shader:\n"
+                   << GetShaderSource(gl, shader);
+    return false;
+  }
+  return true;
+}
+
 // |PipelineLibrary|
 bool PipelineLibraryGLES::IsValid() const {
   return reactor_ != nullptr;
@@ -264,6 +338,81 @@ std::shared_ptr<PipelineGLES> PipelineLibraryGLES::CreatePipeline(
   return pipeline;
 }
 
+std::shared_ptr<ComputePipelineGLES> PipelineLibraryGLES::CreateComputePipeline(
+    const std::weak_ptr<PipelineLibrary>& weak_library,
+    const ComputePipelineDescriptor& desc,
+    const std::shared_ptr<const ShaderFunction>& compute_function,
+    bool threadsafe) {
+  auto strong_library = weak_library.lock();
+
+  if (!strong_library) {
+    VALIDATION_LOG << "Library was collected before a pending pipeline "
+                      "creation could finish.";
+    return nullptr;
+  }
+
+  auto& library = PipelineLibraryGLES::Cast(*strong_library);
+
+  const auto& reactor = library.GetReactor();
+
+  if (!reactor) {
+    return nullptr;
+  }
+
+  auto program_key = ProgramKey{compute_function, nullptr, {}};
+
+  auto cached_program = library.GetProgramForKey(program_key);
+
+  const auto has_cached_program = !!cached_program;
+
+  std::shared_ptr<UniqueHandleGLES> program_handle = nullptr;
+  if (has_cached_program) {
+    program_handle = std::move(cached_program);
+  } else {
+    program_handle = threadsafe ? std::make_shared<UniqueHandleGLES>(
+                                      reactor, HandleType::kProgram)
+                                : std::make_shared<UniqueHandleGLES>(
+                                      UniqueHandleGLES::MakeUntracked(
+                                          reactor, HandleType::kProgram));
+  }
+
+  auto pipeline = std::shared_ptr<ComputePipelineGLES>(
+      new ComputePipelineGLES(reactor,       //
+                              weak_library,  //
+                              desc,          //
+                              std::move(program_handle)));
+
+  auto program = reactor->GetGLHandle(pipeline->GetProgramHandle());
+
+  if (!program.has_value()) {
+    VALIDATION_LOG << "Could not obtain program handle.";
+    return nullptr;
+  }
+
+  const auto link_result = !has_cached_program
+                               ? LinkComputeProgram(*reactor,         //
+                                                    pipeline,         //
+                                                    compute_function  //
+                                                    )
+                               : true;
+
+  if (!link_result) {
+    VALIDATION_LOG << "Could not link pipeline program.";
+    return nullptr;
+  }
+
+  if (!pipeline->IsValid()) {
+    VALIDATION_LOG << "Pipeline validation checks failed.";
+    return nullptr;
+  }
+
+  if (!has_cached_program) {
+    library.SetProgramForKey(program_key, pipeline->GetSharedHandle());
+  }
+
+  return pipeline;
+}
+
 // |PipelineLibrary|
 PipelineFuture<PipelineDescriptor> PipelineLibraryGLES::GetPipeline(
     PipelineDescriptor descriptor,
@@ -314,11 +463,46 @@ PipelineFuture<PipelineDescriptor> PipelineLibraryGLES::GetPipeline(
 // |PipelineLibrary|
 PipelineFuture<ComputePipelineDescriptor> PipelineLibraryGLES::GetPipeline(
     ComputePipelineDescriptor descriptor,
-    bool async) {
+    bool threadsafe) {
+  if (auto found = compute_pipelines_.find(descriptor);
+      found != compute_pipelines_.end()) {
+    return found->second;
+  }
+  if (!reactor_) {
+    return {
+        descriptor,
+        RealizedFuture<std::shared_ptr<Pipeline<ComputePipelineDescriptor>>>(
+            nullptr)};
+  }
+
+  auto comp_function = descriptor.GetStageEntrypoint();
+  if (!comp_function) {
+    VALIDATION_LOG
+        << "Could not find stage entrypoint functions in pipeline descriptor.";
+    return {
+        descriptor,
+        RealizedFuture<std::shared_ptr<Pipeline<ComputePipelineDescriptor>>>(
+            nullptr)};
+  }
+
   auto promise = std::make_shared<
       std::promise<std::shared_ptr<Pipeline<ComputePipelineDescriptor>>>>();
-  promise->set_value(nullptr);
-  return {descriptor, promise->get_future()};
+  auto pipeline_future = PipelineFuture<ComputePipelineDescriptor>{
+      descriptor, promise->get_future()};
+  compute_pipelines_[descriptor] = pipeline_future;
+
+  const auto result = reactor_->AddOperation([promise,                       //
+                                              weak_this = weak_from_this(),  //
+                                              descriptor,                    //
+                                              comp_function,                 //
+                                              threadsafe                     //
+  ](const ReactorGLES& reactor) {
+    promise->set_value(CreateComputePipeline(weak_this, descriptor,
+                                             comp_function, threadsafe));
+  });
+  FML_CHECK(result);
+
+  return pipeline_future;
 }
 
 // |PipelineLibrary|
