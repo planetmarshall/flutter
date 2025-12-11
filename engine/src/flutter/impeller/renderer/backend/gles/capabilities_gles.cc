@@ -118,6 +118,9 @@ CapabilitiesGLES::CapabilitiesGLES(const ProcTableGLES& gl) {
 
   if (desc->GetGlVersion().major_version >= 3) {
     supports_texture_to_texture_blits_ = true;
+    if (desc->GetGlVersion().minor_version >= 1) {
+      supports_compute_ = true;
+    }
   }
 
   supports_framebuffer_fetch_ = desc->HasExtension(kFramebufferFetchExt);
@@ -187,7 +190,7 @@ bool CapabilitiesGLES::SupportsFramebufferFetch() const {
 }
 
 bool CapabilitiesGLES::SupportsCompute() const {
-  return false;
+  return supports_compute_;
 }
 
 bool CapabilitiesGLES::SupportsComputeSubgroups() const {

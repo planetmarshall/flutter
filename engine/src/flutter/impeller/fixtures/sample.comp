@@ -6,7 +6,7 @@ struct SomeStruct {
   uint i;
 };
 
-layout(binding = 0) writeonly buffer Output {
+layout(binding = 0) buffer Output {
   vec4 elements[];
 }
 output_data;

@@ -15,7 +15,14 @@ ComputePipelineGLES::ComputePipelineGLES(
     std::shared_ptr<UniqueHandleGLES> handle)
     : Pipeline(std::move(library), desc),
       reactor_(std::move(reactor)),
-      handle_(std::move(handle)) {}
+      handle_(std::move(handle)),
+      is_valid_(handle->IsValid()) {
+  if (!is_valid_) {
+    reactor_->SetDebugLabel(handle_->Get(), GetDescriptor().GetLabel());
+  }
+}
+
+ComputePipelineGLES::~ComputePipelineGLES() = default;
 
 const HandleGLES& ComputePipelineGLES::GetProgramHandle() const {
   return handle_->Get();

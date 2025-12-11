@@ -57,6 +57,7 @@ class ComputePlaygroundTest
   INSTANTIATE_TEST_SUITE_P(                                                \
       Compute, playground,                                                 \
       ::testing::Values(PlaygroundBackend::kMetal,                         \
+                        PlaygroundBackend::kOpenGLES,                      \
                         PlaygroundBackend::kVulkan),                       \
       [](const ::testing::TestParamInfo<ComputePlaygroundTest::ParamType>& \
              info) { return PlaygroundBackendToString(info.param); });

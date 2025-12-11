@@ -144,6 +144,7 @@ class CapabilitiesGLES final
   bool NeedsPartitionedHostBuffer() const override;
 
  private:
+  bool supports_compute_ = false;
   bool supports_texture_to_texture_blits_ = false;
   bool supports_framebuffer_fetch_ = false;
   bool supports_decal_sampler_address_mode_ = false;

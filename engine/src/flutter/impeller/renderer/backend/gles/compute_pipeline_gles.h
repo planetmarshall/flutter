@@ -23,9 +23,12 @@ class ComputePipelineGLES final
                          Pipeline<ComputePipelineDescriptor>> {
 
 public:
+  ~ComputePipelineGLES() override;
+
   const HandleGLES& GetProgramHandle() const;
 
   const std::shared_ptr<UniqueHandleGLES> GetSharedHandle() const;
+
 private:
   ComputePipelineGLES(std::shared_ptr<ReactorGLES> reactor,
                       std::weak_ptr<PipelineLibrary> library,
@@ -33,6 +36,7 @@ private:
                       std::shared_ptr<UniqueHandleGLES> handle);
   std::shared_ptr<ReactorGLES> reactor_;
   std::shared_ptr<UniqueHandleGLES> handle_;
+  bool is_valid_;
   friend PipelineLibraryGLES;
   bool IsValid() const override;
 };

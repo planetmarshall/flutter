@@ -204,6 +204,8 @@ static bool LinkComputeProgram(
   fml::ScopedCleanupClosure delete_shader(
       [&gl, shader]() { gl.DeleteShader(shader); });
 
+  gl.ShaderSourceMapping(shader, *mapping);
+
   gl.CompileShader(shader);
 
   GLint status = GL_FALSE;
@@ -213,12 +215,6 @@ static bool LinkComputeProgram(
   if (status != GL_TRUE) {
     LogShaderCompilationFailure(gl, shader, descriptor.GetLabel(), *mapping,
                                 ShaderStage::kCompute);
-    return false;
-  }
-
-  if (status != GL_TRUE) {
-    LogShaderCompilationFailure(gl, shader, descriptor.GetLabel(), *mapping,
-                                ShaderStage::kFragment);
     return false;
   }
 
