@@ -92,7 +92,8 @@ std::shared_ptr<ComputePass> CommandBufferGLES::OnCreateComputePass() {
   if (!context->GetCapabilities()->SupportsCompute()) {
     return nullptr;
   }
-  auto pass = std::shared_ptr<ComputePassGLES>(new ComputePassGLES(context, reactor_));
+  auto pass =
+      std::shared_ptr<ComputePassGLES>(new ComputePassGLES(context, reactor_));
   if (!pass->IsValid()) {
     return nullptr;
   }

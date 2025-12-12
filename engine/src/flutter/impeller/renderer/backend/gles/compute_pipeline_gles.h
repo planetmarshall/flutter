@@ -21,8 +21,7 @@ class ComputePipelineGLES final
     : public Pipeline<ComputePipelineDescriptor>,
       public BackendCast<ComputePipelineGLES,
                          Pipeline<ComputePipelineDescriptor>> {
-
-public:
+ public:
   ~ComputePipelineGLES() override;
 
   [[nodiscard]]
@@ -37,7 +36,7 @@ public:
   [[nodiscard]]
   bool UnbindProgram() const;
 
-private:
+ private:
   ComputePipelineGLES(std::shared_ptr<ReactorGLES> reactor,
                       std::weak_ptr<PipelineLibrary> library,
                       const ComputePipelineDescriptor& desc,

@@ -139,21 +139,16 @@ std::shared_ptr<Context> PlaygroundImplGLES::GetContext() const {
 
   if (gl->GetDescription()->HasDebugExtension()) {
     gl->DebugMessageCallbackKHR(
-    [](GLenum source,
-        GLenum message_type,
-        GLuint message_id,
-        GLenum severity,
-        GLsizei length,
-        const GLchar *message,
-        const void *user_param) {
-         if (message_type == GL_DEBUG_TYPE_ERROR_KHR) {
-             FML_LOG(ERROR) << "GL Error: " << message;
-         } else {
-             FML_LOG(INFO) << "GL Error: " << message;
-         }
-     },
-     nullptr
-    );
+        [](GLenum source, GLenum message_type, GLuint message_id,
+           GLenum severity, GLsizei length, const GLchar* message,
+           const void* user_param) {
+          if (message_type == GL_DEBUG_TYPE_ERROR_KHR) {
+            FML_LOG(ERROR) << "GL Error: " << message;
+          } else {
+            FML_LOG(INFO) << "GL Error: " << message;
+          }
+        },
+        nullptr);
     gl->Enable(GL_DEBUG_OUTPUT_SYNCHRONOUS_KHR);
   }
   auto context =

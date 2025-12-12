@@ -240,7 +240,7 @@ void ComputePassVK::AddTextureMemoryBarrier() {
 }
 
 // |ComputePass|
-bool ComputePassVK::OnEncodeCommands( const Context& /* context */) const {
+bool ComputePassVK::OnEncodeCommands(const Context& /* context */) const {
   // Since we only use global memory barrier, we don't have to worry about
   // compute to compute dependencies across cmd buffers. Instead, we pessimize
   // here and assume that we wrote to a storage image or buffer and that a

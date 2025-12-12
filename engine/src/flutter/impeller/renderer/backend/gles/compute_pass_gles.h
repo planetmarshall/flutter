@@ -5,14 +5,25 @@
 #ifndef FLUTTER_IMPELLER_RENDERER_BACKEND_GLES_COMPUTE_PASS_GLES_H_
 #define FLUTTER_IMPELLER_RENDERER_BACKEND_GLES_COMPUTE_PASS_GLES_H_
 
+#include "impeller/renderer/backend/gles/reactor_gles.h"
 #include "impeller/renderer/compute_pass.h"
+#include "impeller/renderer/compute_pipeline_descriptor.h"
+#include "impeller/renderer/pipeline.h"
 
 namespace impeller {
 
 class ReactorGLES;
 
-class ComputePassGLES final : public ComputePass {
+class ComputePassGLES final
+    : public ComputePass,
+      public std::enable_shared_from_this<ComputePassGLES> {
  public:
+  struct ComputeCommand {
+    std::shared_ptr<Pipeline<ComputePipelineDescriptor>> pipeline;
+    std::string label;
+    ISize grid_size;
+  };
+
   // |ComputePass|
   ~ComputePassGLES() override;
 
@@ -21,8 +32,11 @@ class ComputePassGLES final : public ComputePass {
 
   std::shared_ptr<ReactorGLES> reactor_;
   std::string label_;
+  std::vector<ComputeCommand> commands_;
+  ComputeCommand pending_;
 
-  ComputePassGLES(std::shared_ptr<const Context> context, std::shared_ptr<ReactorGLES> reactor);
+  ComputePassGLES(std::shared_ptr<const Context> context,
+                  std::shared_ptr<ReactorGLES> reactor);
 
   // |ComputePass|
   bool IsValid() const override;

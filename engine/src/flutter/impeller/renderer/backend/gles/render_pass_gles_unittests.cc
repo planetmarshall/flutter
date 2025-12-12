@@ -28,14 +28,6 @@ using ::testing::Return;
 using ::testing::SetArgPointee;
 using ::testing::TestWithParam;
 
-class TestReactorGLES : public ReactorGLES {
- public:
-  TestReactorGLES()
-      : ReactorGLES(std::make_unique<ProcTableGLES>(kMockResolverGLES)) {}
-
-  ~TestReactorGLES() = default;
-};
-
 class MockWorker final : public ReactorGLES::Worker {
  public:
   MockWorker() = default;
