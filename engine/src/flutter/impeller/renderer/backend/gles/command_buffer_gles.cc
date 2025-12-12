@@ -6,6 +6,7 @@
 
 #include "impeller/base/config.h"
 #include "impeller/renderer/backend/gles/blit_pass_gles.h"
+#include "impeller/renderer/backend/gles/compute_pass_gles.h"
 #include "impeller/renderer/backend/gles/render_pass_gles.h"
 
 namespace impeller {
@@ -81,9 +82,21 @@ std::shared_ptr<BlitPass> CommandBufferGLES::OnCreateBlitPass() {
 
 // |CommandBuffer|
 std::shared_ptr<ComputePass> CommandBufferGLES::OnCreateComputePass() {
-  // Compute passes aren't supported until GLES 3.2, at which point Vulkan is
-  // available anyway.
-  return nullptr;
+  if (!IsValid()) {
+    return nullptr;
+  }
+  auto context = context_.lock();
+  if (!context) {
+    return nullptr;
+  }
+  if (!context->GetCapabilities()->SupportsCompute()) {
+    return nullptr;
+  }
+  auto pass = std::shared_ptr<ComputePassGLES>(new ComputePassGLES(context, reactor_));
+  if (!pass->IsValid()) {
+    return nullptr;
+  }
+  return pass;
 }
 
 }  // namespace impeller

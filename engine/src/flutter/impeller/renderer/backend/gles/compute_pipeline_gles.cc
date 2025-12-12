@@ -16,7 +16,7 @@ ComputePipelineGLES::ComputePipelineGLES(
     : Pipeline(std::move(library), desc),
       reactor_(std::move(reactor)),
       handle_(std::move(handle)),
-      is_valid_(handle->IsValid()) {
+      is_valid_(handle_->IsValid()) {
   if (!is_valid_) {
     reactor_->SetDebugLabel(handle_->Get(), GetDescriptor().GetLabel());
   }

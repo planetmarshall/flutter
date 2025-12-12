@@ -16,6 +16,8 @@ impeller_component("gles_unittests") {
   sources = [
     "blit_command_gles_unittests.cc",
     "buffer_bindings_gles_unittests.cc",
+    "command_buffer_gles_unittests.cc",
+    "compute_pass_gles_unittests.cc",
     "device_buffer_gles_unittests.cc",
     "render_pass_gles_unittests.cc",
     "test/capabilities_unittests.cc",
@@ -55,6 +57,8 @@ impeller_component("gles") {
     "capabilities_gles.h",
     "command_buffer_gles.cc",
     "command_buffer_gles.h",
+    "compute_pass_gles.cc",
+    "compute_pass_gles.h",
     "compute_pipeline_gles.cc",
     "compute_pipeline_gles.h",
     "context_gles.cc",
