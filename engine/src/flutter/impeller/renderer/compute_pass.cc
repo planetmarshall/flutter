@@ -18,4 +18,8 @@ void ComputePass::SetLabel(const std::string& label) {
   OnSetLabel(label);
 }
 
+bool ComputePass::EncodeCommands() const {
+  return OnEncodeCommands(*context_);
+}
+
 }  // namespace impeller

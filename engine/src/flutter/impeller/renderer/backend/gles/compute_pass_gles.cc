@@ -79,7 +79,7 @@ void ComputePassGLES::AddTextureMemoryBarrier() {
 }
 
 // |ComputePass|
-bool ComputePassGLES::EncodeCommands() const {
+bool ComputePassGLES::OnEncodeCommands(const Context& context) const {
 
   return true;
 }

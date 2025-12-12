@@ -57,7 +57,7 @@ class ComputePass : public ResourceBinder {
   /// @return     If the commands were encoded to the underlying command
   ///             buffer.
   ///
-  virtual bool EncodeCommands() const = 0;
+  bool EncodeCommands() const;
 
   const Context& GetContext() const { return *context_; }
 
@@ -67,6 +67,8 @@ class ComputePass : public ResourceBinder {
   explicit ComputePass(std::shared_ptr<const Context> context);
 
   virtual void OnSetLabel(const std::string& label) = 0;
+
+  virtual bool OnEncodeCommands(const Context& context) const = 0;
 
  private:
   ComputePass(const ComputePass&) = delete;

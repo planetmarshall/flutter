@@ -31,7 +31,7 @@ class ComputePassGLES final : public ComputePass {
   void OnSetLabel(const std::string& label) override;
 
   // |ComputePass|
-  bool EncodeCommands() const override;
+  bool OnEncodeCommands(const Context& context) const override;
 
   // |ComputePass|
   void SetCommandLabel(std::string_view label) override;
