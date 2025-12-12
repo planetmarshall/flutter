@@ -11,22 +11,22 @@
 #include "impeller/renderer/backend/gles/test/mock_gles.h"
 #include "impeller/renderer/context.h"
 
-namespace impeller {
-namespace testing {
+namespace impeller::testing {
 
 namespace {
-  std::shared_ptr<ContextGLES> CreateFakeGLESContext(std::string_view version) {
-      MockGLES::Init(std::nullopt, version.data());
-      auto dummy_gl_procs = std::make_unique<ProcTableGLES>(kMockResolverGLES);
-      auto dummy_shader_library = std::vector<std::shared_ptr<fml::Mapping>>{};
-      return ContextGLES::Create({}, std::move(dummy_gl_procs), dummy_shader_library, false);
-  }
+std::shared_ptr<ContextGLES> CreateFakeGLESContext(std::string_view version) {
+  MockGLES::Init(std::nullopt, version.data());
+  auto dummy_gl_procs = std::make_unique<ProcTableGLES>(kMockResolverGLES);
+  auto dummy_shader_library = std::vector<std::shared_ptr<fml::Mapping>>{};
+  return ContextGLES::Create({}, std::move(dummy_gl_procs),
+                             dummy_shader_library, false);
 }
+}  // namespace
 
 TEST(CommandBufferGLESTest, CanCreateComputePassIfSupported) {
   const auto context = CreateFakeGLESContext("OpenGL ES 3.1");
-    const auto command_buffer =
-        std::static_pointer_cast<Context>(context)->CreateCommandBuffer();
+  const auto command_buffer =
+      std::static_pointer_cast<Context>(context)->CreateCommandBuffer();
   ASSERT_TRUE(command_buffer->CreateComputePass());
 }
 
@@ -36,5 +36,4 @@ TEST(CommandBufferGLESTest, ComputePassIsNotSupportedBeforeES310) {
       std::static_pointer_cast<Context>(context)->CreateCommandBuffer();
   ASSERT_FALSE(command_buffer->CreateComputePass());
 }
-} // testing
-} // impeller
+}  // namespace impeller::testing

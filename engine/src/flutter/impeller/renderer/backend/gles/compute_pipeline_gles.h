@@ -25,9 +25,17 @@ class ComputePipelineGLES final
 public:
   ~ComputePipelineGLES() override;
 
+  [[nodiscard]]
   const HandleGLES& GetProgramHandle() const;
 
+  [[nodiscard]]
   const std::shared_ptr<UniqueHandleGLES> GetSharedHandle() const;
+
+  [[nodiscard]]
+  bool BindProgram() const;
+
+  [[nodiscard]]
+  bool UnbindProgram() const;
 
 private:
   ComputePipelineGLES(std::shared_ptr<ReactorGLES> reactor,
